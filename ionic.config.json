@@ -1,0 +1,7 @@
+{
+  "name": "import-supplies-protection",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
