@@ -1,0 +1,410 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Órdenes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ordenes-content">
+  <div class="ordenes-wrapper">
+
+    <!-- Header Card con gradiente -->
+    <div class="header-card">
+      <div class="header-info">
+        <span class="panel-label">{{ isTransportista ? 'ENTREGAS ASIGNADAS' : 'LOGÍSTICA · VITALFLOW' }}</span>
+        <h2>{{ isTransportista ? 'Mis Entregas' : 'Gestión de Órdenes' }}</h2>
+      </div>
+      <div class="header-actions">
+        <ion-button class="btn-solid-teal" *ngIf="isSupervisor" (click)="openCreateModal()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Crear Orden
+        </ion-button>
+        <ion-button fill="outline" class="btn-outline-gray" (click)="scanQr()">
+          <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+          {{ isTransportista ? 'Escanear' : 'Escanear QR' }}
+        </ion-button>
+        <ion-button fill="outline" class="btn-outline-gray hide-mobile" *ngIf="isSupervisor" (click)="exportOrders()">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          Exportar
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-chip chip-total">
+        <span class="chip-value">{{ orders.length }}</span>
+        <span class="chip-label">Total</span>
+      </div>
+      <div class="stat-chip chip-pending">
+        <span class="chip-value">{{ countByStatus('Pendiente') }}</span>
+        <span class="chip-label">Pendiente</span>
+      </div>
+      <div class="stat-chip chip-prep">
+        <span class="chip-value">{{ countByStatus('En preparación') }}</span>
+        <span class="chip-label">Preparación</span>
+      </div>
+      <div class="stat-chip chip-enroute">
+        <span class="chip-value">{{ countByStatus('En camino') }}</span>
+        <span class="chip-label">En Camino</span>
+      </div>
+      <div class="stat-chip chip-done">
+        <span class="chip-value">{{ countByStatus('Entregado') }}</span>
+        <span class="chip-label">Entregado</span>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="filters-bar" *ngIf="isSupervisor">
+      <div class="filters-left">
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <ion-input placeholder="Buscar orden o cliente..." [(ngModel)]="search"></ion-input>
+        </div>
+      </div>
+
+      <div class="filters-right">
+        <div class="dropdown-box hide-mobile">
+          <span>Estado</span>
+          <ion-select [(ngModel)]="statusFilter">
+            <ion-select-option value="Todos">Todos</ion-select-option>
+            <ion-select-option value="Pendiente">Pendiente</ion-select-option>
+            <ion-select-option value="En preparación">En preparación</ion-select-option>
+            <ion-select-option value="En camino">En camino</ion-select-option>
+            <ion-select-option value="Entregado">Entregado</ion-select-option>
+            <ion-select-option value="Cancelado">Cancelado</ion-select-option>
+          </ion-select>
+        </div>
+
+        <div class="dropdown-box hide-mobile">
+          <span>Prioridad</span>
+          <ion-select [(ngModel)]="priorityFilter">
+            <ion-select-option value="Todos">Todos</ion-select-option>
+            <ion-select-option value="Alta">Alta</ion-select-option>
+            <ion-select-option value="Media">Media</ion-select-option>
+            <ion-select-option value="Baja">Baja</ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Bar Transportista -->
+    <div class="filters-bar" *ngIf="isTransportista">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <ion-input placeholder="Buscar entrega..." [(ngModel)]="search"></ion-input>
+      </div>
+    </div>
+
+    <!-- Orders Grid -->
+    <div class="orders-grid">
+      <div class="order-card anim-fade-up" *ngFor="let order of visibleOrders; let i = index"
+           [ngStyle]="{'animation-delay': (i < 6 ? i * 0.06 : 0.3) + 's'}"
+           (click)="openOrderDetail(order)">
+        <div class="card-top-row">
+          <span class="order-id">{{ order.code }}</span>
+          <div class="badges">
+            <span class="badge" [ngClass]="'priority-' + order.prioridad.toLowerCase()">{{ order.prioridad }}</span>
+            <span class="badge" [ngClass]="getStatusClass(order.estado)">{{ order.estado }}</span>
+          </div>
+        </div>
+
+        <div class="card-main-info">
+          <h3>{{ order.cliente }}</h3>
+          <p class="info-row">
+            <ion-icon name="location-outline"></ion-icon>
+            {{ order.destino }}
+          </p>
+          <p class="info-row" *ngIf="!isTransportista">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ order.transportista || 'Sin asignar' }}
+          </p>
+          <p class="info-row">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ order.fechaEntrega ? (order.fechaEntrega | date:'dd/MM HH:mm') : (order.fecha | date:'dd/MM') }}
+          </p>
+          <div class="delivery-meta" *ngIf="isTransportista && order.requiresColdChain">
+            <span class="badge-small temp-badge">🧊 Cadena frío</span>
+            <span class="badge-small eta-badge">⏱ {{ getEta(order) }}</span>
+          </div>
+        </div>
+
+        <div class="quick-actions-row" *ngIf="isTransportista">
+          <ion-button fill="solid" size="small" (click)="quickAction($event, order, 'detail')">
+            <ion-icon name="arrow-forward-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button fill="outline" size="small" *ngIf="order.estado === 'Pendiente' || order.estado === 'En preparación'" (click)="performDriverAction($event, order)">
+            Iniciar
+          </ion-button>
+          <ion-button fill="outline" size="small" *ngIf="order.estado === 'En camino'" (click)="performDriverAction($event, order)">
+            Llegué
+          </ion-button>
+        </div>
+
+        <div class="alert-box" *ngIf="order.estado === 'Pendiente' || order.estado === 'En preparación'">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>Requiere atención</span>
+        </div>
+
+        <div class="card-bottom-row">
+          <div class="status-indicator" [ngClass]="'status-indicator-' + order.estado.replace(' ', '-').toLowerCase()"></div>
+          <span class="delivery-eta">ETA: {{ order.fechaEntrega ? getEta(order) : 'N/A' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="visibleOrders.length === 0">
+      <ion-icon name="inbox-outline"></ion-icon>
+      <h3>No hay órdenes</h3>
+      <p>Intenta ajustar los filtros</p>
+    </div>
+
+  </div>
+
+  <!-- Order Detail Modal -->
+  <ion-modal 
+    [isOpen]="selectedOrder !== null" 
+    (didDismiss)="closeOrderDetail()"
+    class="order-detail-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Detalle de Orden</ion-title>
+          <ion-button slot="end" fill="clear" (click)="closeOrderDetail()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <div class="modal-body ion-padding">
+        <div class="order-detail" *ngIf="selectedOrder; else orderNotFound">
+          <div class="qr-section">
+            <div class="qr-display">
+              <div class="qr-placeholder">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <rect width="120" height="120" fill="#fff"/>
+                  <rect x="10" y="10" width="30" height="30" fill="#000"/>
+                  <rect x="80" y="10" width="30" height="30" fill="#000"/>
+                  <rect x="10" y="80" width="30" height="30" fill="#000"/>
+                  <rect x="40" y="40" width="40" height="40" fill="#0f766e" opacity="0.3"/>
+                </svg>
+              </div>
+              <p class="qr-code">{{ selectedOrder.code }}</p>
+            </div>
+          </div>
+
+          <!-- Main Info -->
+          <div class="detail-section">
+            <h3>Información General</h3>
+            <div class="detail-row">
+              <label>Código Orden:</label>
+              <strong>{{ selectedOrder.code }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Cliente:</label>
+              <strong>{{ getClienteNombre(selectedOrder) }}</strong>
+            </div>
+            <div class="detail-row" *ngIf="selectedOrder.solicitudId">
+              <label>Solicitud origen:</label>
+              <strong>{{ selectedOrder.solicitudId }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Dirección:</label>
+              <strong>{{ selectedOrder.destino || 'No disponible' }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Contacto:</label>
+              <strong>{{ selectedOrder.contactName || 'No disponible' }} {{ selectedOrder.contactPhone ? '· ' + selectedOrder.contactPhone : '' }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Estado:</label>
+              <span class="badge" [ngClass]="getStatusClass(selectedOrder.estado)">
+                {{ selectedOrder.estado }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <label>Prioridad:</label>
+              <span class="badge" [ngClass]="'priority-' + selectedOrder.prioridad.toLowerCase()">
+                {{ selectedOrder.prioridad }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <label>Transportista:</label>
+              <strong>{{ getTransportistaNombre(selectedOrder) }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Fecha:</label>
+              <strong>{{ selectedOrder.fecha | date:'dd/MM/yyyy HH:mm' }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>ETA:</label>
+              <strong>{{ selectedOrder.fechaEntrega ? (selectedOrder.fechaEntrega | date:'dd/MM/yyyy HH:mm') : 'N/A' }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Tipo de entrega:</label>
+              <strong>{{ getDeliveryTypeLabel(selectedOrder) }}</strong>
+            </div>
+            <div class="detail-row">
+              <label>Temperatura:</label>
+              <strong>{{ selectedOrder.requiresColdChain ? 'Cadena frío requerido' : 'No aplica' }}</strong>
+            </div>
+            <div class="detail-row" *ngIf="selectedOrder.assignedVehicle">
+              <label>Vehículo:</label>
+              <strong>{{ selectedOrder.assignedVehicle }}</strong>
+            </div>
+            <div class="detail-row" *ngIf="selectedOrder.assignedZone">
+              <label>Zona:</label>
+              <strong>{{ selectedOrder.assignedZone }}</strong>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div class="detail-section" *ngIf="selectedOrder.products && selectedOrder.products.length > 0; else noProducts">
+            <h3>Productos</h3>
+            <div class="products-list">
+              <div class="product-item" *ngFor="let prod of selectedOrder.products">
+                <span class="prod-name">{{ prod.name }}</span>
+                <span class="prod-qty">x{{ prod.qty }}</span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noProducts>
+            <div class="detail-section">
+              <h3>Productos</h3>
+              <p>No hay productos registrados para esta entrega.</p>
+            </div>
+          </ng-template>
+
+          <!-- Timeline -->
+          <div class="detail-section">
+            <h3>Trazabilidad</h3>
+            <ng-container *ngIf="traceSteps && traceSteps.length > 0; else noTimeline">
+              <div class="timeline">
+                <div class="timeline-item" *ngFor="let step of traceSteps">
+                  <div class="timeline-dot" [ngClass]="'step-' + step.step"></div>
+                  <div class="timeline-content">
+                    <p class="step-name">{{ step.step | titlecase }}</p>
+                    <p class="step-time">{{ step.timestamp | date:'dd/MM/yyyy HH:mm' }}</p>
+                    <p *ngIf="step.notes" class="step-notes">{{ step.notes }}</p>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #noTimeline>
+              <p>No se encontró información de trazabilidad para esta entrega.</p>
+            </ng-template>
+          </div>
+
+          <!-- Actions -->
+          <div class="detail-section" *ngIf="isSupervisor || (isTransportista && selectedOrder)">
+            <h3>Acciones</h3>
+            <div class="action-buttons">
+              <ion-button *ngIf="isSupervisor" expand="block" fill="solid" (click)="changeStatus(selectedOrder!)">
+                Avanzar Estado
+              </ion-button>
+              <ion-button *ngIf="isTransportista && selectedOrder && selectedOrder.estado === 'Pendiente'" expand="block" fill="solid" color="primary" (click)="startRoute(selectedOrder)">
+                <ion-icon name="navigate-outline" slot="start"></ion-icon>
+                Iniciar ruta
+              </ion-button>
+              <ion-button *ngIf="isTransportista && selectedOrder && selectedOrder.estado === 'En camino'" expand="block" fill="solid" color="secondary" (click)="arrivedAtPoint(selectedOrder)">
+                <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                Llegué al punto
+              </ion-button>
+              <ion-button *ngIf="isTransportista && selectedOrder && selectedOrder.estado === 'Llegué al punto'" expand="block" fill="solid" color="success" (click)="completeDelivery(selectedOrder)">
+                <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+                Completar entrega
+              </ion-button>
+              <ion-button *ngIf="isTransportista && selectedOrder" expand="block" fill="outline" color="success" (click)="goToTrazabilidad(selectedOrder, 'sign')">
+                <ion-icon name="document-text-outline" slot="start"></ion-icon>
+                Registrar firma
+              </ion-button>
+              <ion-button *ngIf="isTransportista && selectedOrder" expand="block" fill="outline" (click)="goToTrazabilidad(selectedOrder)">
+                <ion-icon name="navigate-outline" slot="start"></ion-icon>
+                Ver trazabilidad
+              </ion-button>
+              <ion-button *ngIf="isSupervisor || isTransportista" expand="block" fill="outline" (click)="reportIssue(selectedOrder!)">
+                <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
+                Reportar incidencia
+              </ion-button>
+              <ion-button expand="block" fill="clear" color="medium" (click)="closeOrderDetail()">
+                Cerrar
+              </ion-button>
+            </div>
+            <div class="action-buttons edit-actions" *ngIf="isSupervisor" style="margin-top: 1rem;">
+              <ion-button expand="block" fill="clear" color="primary" (click)="openEditModal(selectedOrder!)">
+                Editar Orden
+              </ion-button>
+              <ion-button expand="block" fill="clear" color="danger" (click)="deleteOrder(selectedOrder!)">
+                Eliminar Orden
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        <ng-template #orderNotFound>
+          <div class="empty-state-panel">
+            <h3>No se encontró información de esta entrega.</h3>
+            <p>Verifica la orden o cierra para volver a la lista.</p>
+          </div>
+        </ng-template>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Create/Edit Modal -->
+  <ion-modal [isOpen]="showCreateModal" (didDismiss)="closeCreateModal()" class="create-order-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ isEditMode ? 'Editar Orden' : 'Nueva Orden' }}</ion-title>
+          <ion-button slot="end" fill="clear" (click)="closeCreateModal()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="form-container">
+          <div class="form-group">
+            <label>Cliente</label>
+            <ion-input [(ngModel)]="editingOrder.clienteId" [disabled]="isEditMode"></ion-input>
+          </div>
+          <div class="form-group">
+            <label>Prioridad</label>
+            <ion-select [(ngModel)]="editingOrder.prioridad">
+              <ion-select-option value="Baja">Baja</ion-select-option>
+              <ion-select-option value="Media">Media</ion-select-option>
+              <ion-select-option value="Alta">Alta</ion-select-option>
+            </ion-select>
+          </div>
+          <div class="form-group">
+            <label>Transportista Asignado</label>
+            <ion-select [(ngModel)]="editingOrder.transportistaId">
+              <ion-select-option value="">-- Sin asignar --</ion-select-option>
+              <ion-select-option *ngFor="let t of transportistas" [value]="t.id">{{ t.name }}</ion-select-option>
+            </ion-select>
+          </div>
+          
+          <ion-button expand="block" class="btn-solid-teal mt-4" (click)="saveOrder()">
+            Guardar Orden
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-alert
+    [isOpen]="showDeleteConfirm"
+    header="Confirmar eliminación"
+    [message]="'¿Eliminar la orden ' + (orderToDelete?.code ?? '') + '? Esta acción no se puede deshacer.'"
+    [buttons]="[
+      { text: 'Cancelar', role: 'cancel', handler: cancelDeleteOrder.bind(this) },
+      { text: 'Eliminar', role: 'destructive', handler: confirmDeleteOrder.bind(this) }
+    ]"
+    (didDismiss)="cancelDeleteOrder()">
+  </ion-alert>
+
+  <ion-toast
+    [isOpen]="toastOpen"
+    message="{{ toastMessage }}"
+    duration="2000"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

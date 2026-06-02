@@ -1,0 +1,305 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Inventario</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="inventario-content">
+  <div class="inventario-wrapper">
+    <!-- Header Card -->
+    <div class="header-card">
+      <div class="header-info">
+        <span class="panel-label">GESTIÓN DE INVENTARIO</span>
+        <h2>Catálogo de productos</h2>
+      </div>
+      <div class="header-actions">
+        <ion-button class="btn-solid-teal" (click)="openCreateModal()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Nuevo producto
+        </ion-button>
+        <ion-button fill="outline" class="btn-outline-gray hide-mobile" (click)="exportInventory()">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          Exportar
+        </ion-button>
+        <ion-button fill="outline" class="btn-outline-gray hide-mobile" (click)="fileInput.click()">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          Importar CSV
+        </ion-button>
+        <input type="file" accept=".csv" hidden #fileInput (change)="importCSV($event.target.files)" />
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-chip">
+        <span class="chip-value">{{ filtered.length }}</span>
+        <span class="chip-label">Total Productos</span>
+      </div>
+      <div class="stat-chip chip-critical">
+        <span class="chip-value">{{ (filtered | slice:0:100).length }}</span>
+        <span class="chip-label">Stock Crítico</span>
+      </div>
+      <div class="stat-chip chip-medium">
+        <span class="chip-value">{{ (filtered | slice:0:100).length }}</span>
+        <span class="chip-label">Stock Medio</span>
+      </div>
+      <div class="stat-chip chip-good">
+        <span class="chip-value">{{ (filtered | slice:0:100).length }}</span>
+        <span class="chip-label">Stock Suficiente</span>
+      </div>
+    </div>
+
+    <!-- Filters Bar -->
+    <div class="filters-bar">
+      <div class="filters-left">
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <ion-input placeholder="Buscar producto o código..." [(ngModel)]="search" (ionChange)="applyFilters()"></ion-input>
+        </div>
+      </div>
+      
+      <div class="filters-right">
+        <div class="dropdown-box">
+          <span>Categoría</span>
+          <ion-select [(ngModel)]="categoryFilter" (ionChange)="applyFilters()">
+            <ion-select-option value="">Todas</ion-select-option>
+            <ion-select-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</ion-select-option>
+          </ion-select>
+        </div>
+        <div class="dropdown-box">
+          <span>Estado Stock</span>
+          <ion-select [(ngModel)]="stockStateFilter" (ionChange)="applyFilters()">
+            <ion-select-option value="">Todos</ion-select-option>
+            <ion-select-option value="CRÍTICO">Crítico</ion-select-option>
+            <ion-select-option value="MEDIO">Medio</ion-select-option>
+            <ion-select-option value="SUFICIENTE">Suficiente</ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inventory List -->
+    <div class="inventory-list">
+      <div class="inventory-card" *ngFor="let product of filtered">
+        <div class="card-top-row">
+          <div class="inv-product-thumb">
+            <img
+              *ngIf="product.imageUrl"
+              [src]="product.imageUrl"
+              [alt]="product.name"
+            />
+            <ion-icon *ngIf="!product.imageUrl" name="cube-outline"></ion-icon>
+          </div>
+          <div class="title-group">
+            <h3>{{ product.name }}</h3>
+            <span class="badge" [ngClass]="getStockBadgeClass(product)">
+              {{ getStockState(product) }}
+            </span>
+          </div>
+          <p class="product-code">{{ product.code }}</p>
+        </div>
+        
+        <div class="card-main-info">
+          <div class="info-section">
+            <p><strong>Categoría:</strong> {{ product.category }}</p>
+            <p><strong>Stock actual:</strong> {{ product.stock }} unidades</p>
+            <p><strong>Stock mínimo:</strong> {{ product.minStock || 10 }} unidades</p>
+            <p><strong>Precio:</strong> S/ {{ product.price | number:'1.2-2' }}</p>
+          </div>
+          
+          <div class="stock-indicator">
+            <div class="progress-bar" [ngClass]="getStockBadgeClass(product)"></div>
+            <span class="indicator-text">{{ (product.stock / 100 * 100) | number:'0.0' }}% de capacidad</span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <ion-button fill="outline" class="btn-action" (click)="openEditModal(product)">
+            <ion-icon name="pencil-outline" slot="start"></ion-icon>
+            Editar
+          </ion-button>
+          <ion-button fill="outline" class="btn-action" (click)="openAdjustModal(product)">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Ajustar Stock
+          </ion-button>
+          <ion-button fill="outline" class="btn-action" (click)="openMovementsModal(product)">
+            Histórico
+          </ion-button>
+          <ion-button fill="clear" class="btn-delete" (click)="deleteProduct(product)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filtered.length === 0">
+      <ion-icon name="layers-outline"></ion-icon>
+      <h3>No hay productos</h3>
+      <p>Intenta ajustar los filtros</p>
+    </div>
+
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <ion-modal [isOpen]="showEditModal" (didDismiss)="closeModals()" class="product-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ editingProduct ? 'Editar Producto' : 'Nuevo Producto' }}</ion-title>
+          <ion-button slot="end" fill="clear" (click)="closeModals()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="img-upload-wrapper">
+          <div *ngIf="editForm.imageUrl" class="img-preview">
+            <img [src]="editForm.imageUrl" alt="Imagen del producto" class="img-preview-img" />
+            <button type="button" class="img-remove-btn" (click)="removeImage()">
+              <ion-icon name="close-circle"></ion-icon>
+            </button>
+          </div>
+
+          <label *ngIf="!editForm.imageUrl" class="img-upload-btn">
+            <ion-icon name="image-outline"></ion-icon>
+            <span>Agregar imagen</span>
+            <input
+              type="file"
+              accept="image/*"
+              style="display:none"
+              (change)="onImageSelected($event)"
+            />
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre del producto</label>
+          <ion-input placeholder="Ej: Mascarillas N95" [(ngModel)]="editForm.name"></ion-input>
+        </div>
+        <div class="form-group">
+          <label>Código</label>
+          <ion-input placeholder="Código único" [(ngModel)]="editForm.code" [readonly]="!!editingProduct"></ion-input>
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <ion-select [(ngModel)]="editForm.category">
+            <ion-select-option *ngFor="let cat of categories" [value]="cat">{{ cat }}</ion-select-option>
+            <ion-select-option value="Otra">Otra</ion-select-option>
+          </ion-select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stock actual</label>
+            <ion-input type="number" placeholder="0" [(ngModel)]="editForm.stock"></ion-input>
+          </div>
+          <div class="form-group">
+            <label>Stock mínimo</label>
+            <ion-input type="number" placeholder="10" [(ngModel)]="editForm.minStock"></ion-input>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Precio (S/)</label>
+          <ion-input type="number" placeholder="0.00" [(ngModel)]="editForm.price"></ion-input>
+        </div>
+        <div class="button-group">
+          <ion-button expand="block" fill="solid" (click)="saveProduct()">
+            Guardar
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="closeModals()">
+            Cancelar
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Adjust Stock Modal -->
+  <ion-modal [isOpen]="showAdjustModal" (didDismiss)="closeModals()" class="adjust-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Ajustar Stock</ion-title>
+          <ion-button slot="end" fill="clear" (click)="closeModals()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div *ngIf="adjustProduct" class="adjust-content">
+          <h3>{{ adjustProduct.name }}</h3>
+          <p class="current-stock">Stock actual: <strong>{{ adjustProduct.stock }} unidades</strong></p>
+          
+          <div class="form-group">
+            <label>Cantidad a ajustar (+ o -)</label>
+            <ion-input type="number" placeholder="0" [(ngModel)]="adjustDelta"></ion-input>
+          </div>
+          <div class="form-group">
+            <label>Razón del ajuste</label>
+            <ion-select [(ngModel)]="adjustReason">
+              <ion-select-option value="Ajuste manual">Ajuste manual</ion-select-option>
+              <ion-select-option value="Pérdida/Daño">Pérdida/Daño</ion-select-option>
+              <ion-select-option value="Recuento">Recuento</ion-select-option>
+              <ion-select-option value="Devolución">Devolución</ion-select-option>
+            </ion-select>
+          </div>
+          <p class="preview">Nuevo stock: <strong>{{ (adjustProduct.stock + adjustDelta) }}</strong></p>
+          
+          <div class="button-group">
+            <ion-button expand="block" fill="solid" (click)="saveAdjustment()">
+              Confirmar
+            </ion-button>
+            <ion-button expand="block" fill="outline" (click)="closeModals()">
+              Cancelar
+            </ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Movements History Modal -->
+  <ion-modal [isOpen]="showMovementsModal" (didDismiss)="closeModals()" class="movements-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Histórico de Movimientos</ion-title>
+          <ion-button slot="end" fill="clear" (click)="closeModals()">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="movements-list">
+          <div class="movement-item" *ngFor="let mov of movements">
+            <div class="movement-header">
+              <span class="delta" [ngClass]="mov.delta > 0 ? 'positive' : 'negative'">
+                {{ mov.delta > 0 ? '+' : '' }}{{ mov.delta }}
+              </span>
+              <span class="date">{{ mov.date | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <p class="reason">{{ mov.reason }}</p>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-alert
+    [isOpen]="showDeleteProductConfirm"
+    header="Confirmar eliminación"
+    [message]="'¿Eliminar el producto ' + (productToDelete?.name ?? '') + '?'"
+    [buttons]="[
+      { text: 'Cancelar', role: 'cancel', handler: cancelDeleteProduct.bind(this) },
+      { text: 'Eliminar', role: 'destructive', handler: confirmDeleteProduct.bind(this) }
+    ]"
+    (didDismiss)="cancelDeleteProduct()">
+  </ion-alert>
+
+  <ion-toast
+    [isOpen]="toastOpen"
+    message="{{ toastMessage }}"
+    duration="2000"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

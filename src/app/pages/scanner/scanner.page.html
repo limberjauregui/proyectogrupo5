@@ -1,0 +1,217 @@
+<ion-header [translucent]="true" class="app-header ion-no-border">
+  <ion-toolbar class="app-toolbar">
+    <ion-title>Escáner QR</ion-title>
+    <div slot="end" style="padding-right: 1rem;">
+      <ion-badge *ngIf="scanHistory.length > 0" color="primary" style="border-radius: 99px; padding: 0.3rem 0.7rem; font-size: 0.7rem;">
+        {{ scanHistory.length }} escaneos
+      </ion-badge>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="scanner-page ion-padding">
+  <div class="scanner-shell">
+
+    <!-- Scanner Viewport -->
+    <section class="scan-zone card-panel" [ngClass]="{ 'state-scanning': scanState === 'scanning', 'state-success': scanState === 'success', 'state-error': scanState === 'error' }">
+      
+      <div class="scan-header-row">
+        <div>
+          <p class="panel-label">LECTOR ÓPTICO</p>
+          <h2>Identificación de Código</h2>
+        </div>
+        <div class="state-chip" [ngClass]="scanState">
+          <span class="state-dot"></span>
+          {{ scanState === 'idle' ? 'En espera' : scanState === 'scanning' ? 'Procesando...' : scanState === 'success' ? 'Identificado' : 'No encontrado' }}
+        </div>
+      </div>
+
+      <!-- Camera View Frame -->
+      <div class="camera-viewport">
+        <div class="corner top-left"></div>
+        <div class="corner top-right"></div>
+        <div class="corner bottom-left"></div>
+        <div class="corner bottom-right"></div>
+
+        <video #videoElement class="camera-preview" autoplay muted playsinline [hidden]="!cameraActive"></video>
+        <canvas #canvasElement hidden></canvas>
+        <input type="file" #fileInput accept="image/*" hidden (change)="onFileSelected($event)" />
+
+        <!-- Idle State -->
+        <div class="cam-idle" *ngIf="!cameraActive && scanState === 'idle'">
+          <ion-icon name="qr-code-outline"></ion-icon>
+          <p>Vista de cámara inactiva</p>
+          <small>Presiona "Iniciar Cámara" o ingresa un código manual</small>
+        </div>
+
+        <!-- Scanning State -->
+        <div class="cam-scanning" *ngIf="scanState === 'scanning'">
+          <div class="scan-laser"></div>
+          <div class="scan-grid">
+            <div *ngFor="let i of [1,2,3,4,5,6,7,8,9]" class="grid-cell"></div>
+          </div>
+          <div class="scanning-label">
+            <span class="dot-anim">●</span>
+            <span class="dot-anim delay-1">●</span>
+            <span class="dot-anim delay-2">●</span>
+            &nbsp;Analizando patrón QR
+          </div>
+        </div>
+
+        <!-- Success State -->
+        <div class="cam-success" *ngIf="scanState === 'success' && !cameraActive">
+          <div class="success-ring">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+          <p>Código verificado</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="cam-error" *ngIf="scanState === 'error' && !cameraActive">
+          <div class="error-ring">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
+          <p>Código no reconocido</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="scan-actions">
+        <ion-button 
+          expand="block" 
+          class="btn-simulate"
+          (click)="simulateScan()"
+          [disabled]="scanState === 'scanning'"
+        >
+          <ion-icon name="camera-outline" slot="start"></ion-icon>
+          Simular Escaneo QR
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          class="btn-simulate"
+          color="secondary"
+          (click)="toggleCamera()"
+          [disabled]="scanState === 'scanning'"
+        >
+          <ion-icon name="camera-outline" slot="start"></ion-icon>
+          {{ cameraActive ? 'Detener Cámara' : 'Iniciar Cámara' }}
+        </ion-button>
+        <ion-button 
+          expand="block" 
+          class="btn-simulate"
+          fill="outline"
+          (click)="triggerFileInput()"
+          [disabled]="scanState === 'scanning'"
+        >
+          <ion-icon name="image-outline" slot="start"></ion-icon>
+          Escanear desde imagen
+        </ion-button>
+        <ion-button fill="clear" class="btn-reset" (click)="resetScan()" *ngIf="scanState !== 'idle'">
+          <ion-icon name="close-outline" slot="start"></ion-icon>
+          Limpiar
+        </ion-button>
+
+        <div class="camera-message" *ngIf="cameraErrorMessage">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <div class="message-body">
+            <strong>Fallo de Cámara:</strong>
+            <p>{{ cameraErrorMessage }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Search -->
+      <div class="manual-search">
+        <p class="divider-label">— o búsqueda manual —</p>
+        <div class="input-row">
+          <ion-item class="premium-input">
+            <ion-label position="stacked">Código de Orden o Producto</ion-label>
+            <ion-input
+              [(ngModel)]="scanQuery"
+              placeholder="Ej: ORD-123456 o MSK-001"
+              (keyup.enter)="searchCode()"
+              [disabled]="scanState === 'scanning'"
+            ></ion-input>
+          </ion-item>
+          <ion-button class="btn-search" (click)="searchCode()" [disabled]="scanState === 'scanning' || !scanQuery">
+            <ion-icon name="search-outline"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Quick suggestions -->
+        <div class="quick-codes">
+          <span class="quick-label">Códigos de prueba:</span>
+          <button class="quick-chip" *ngFor="let code of ['MSK-001','GLV-002','ALC-003','JRG-004']" (click)="setQuery(code)">{{ code }}</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result Panel -->
+    <section class="result-panel card-panel animate-fade" *ngIf="result">
+      <div class="result-header-bar" [ngClass]="result.type">
+        <div class="result-icon-wrap">
+          <ion-icon [name]="result.type === 'pedido' ? 'document-text-outline' : result.type === 'producto' ? 'cube-outline' : 'alert-circle-outline'"></ion-icon>
+        </div>
+        <div>
+          <h3>{{ result.title }}</h3>
+          <p>{{ result.subtitle }}</p>
+        </div>
+        <ion-badge class="result-badge" [ngClass]="result.type">
+          {{ result.type === 'pedido' ? '📦 Orden' : result.type === 'producto' ? '🧪 Insumo' : '❌ N/A' }}
+        </ion-badge>
+      </div>
+
+      <div class="result-properties">
+        <div *ngFor="let item of result.properties" class="property-row">
+          <span class="prop-label">{{ item.label }}</span>
+          <strong class="prop-value">{{ item.value }}</strong>
+        </div>
+      </div>
+
+      <div class="result-actions">
+        <ion-button expand="block" class="btn-navigate" (click)="navigateTo(result)" *ngIf="result.type !== 'none'">
+          <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+          {{ result.type === 'pedido' ? 'Ver Trazabilidad Completa' : result.relatedOrderCode ? 'Ir a trazabilidad de orden' : 'Ver Ficha en Inventario' }}
+        </ion-button>
+        <ion-button expand="block" fill="outline" class="btn-retry" (click)="resetScan()" *ngIf="result.type === 'none'">
+          Nuevo Intento
+        </ion-button>
+      </div>
+    </section>
+
+    <!-- Scan History -->
+    <section class="history-panel card-panel" *ngIf="scanHistory.length > 0">
+      <div class="history-header">
+        <div>
+          <p class="panel-label">REGISTROS</p>
+          <h3>Historial de Escaneos</h3>
+        </div>
+        <ion-button fill="clear" size="small" class="btn-clear-hist" (click)="clearHistory()">
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
+          Borrar
+        </ion-button>
+      </div>
+
+      <div class="history-list">
+        <div 
+          class="history-entry" 
+          *ngFor="let entry of scanHistory"
+          (click)="reloadFromHistory(entry)"
+          [ngClass]="getHistoryTypeClass(entry.type)"
+        >
+          <div class="hist-icon">
+            <ion-icon [name]="entry.type === 'pedido' ? 'document-text-outline' : entry.type === 'producto' ? 'cube-outline' : 'alert-circle-outline'"></ion-icon>
+          </div>
+          <div class="hist-info">
+            <strong>{{ entry.code }}</strong>
+            <span>{{ getHistoryTypeName(entry.type) }} · {{ timeAgo(entry.timestamp) }}</span>
+          </div>
+          <ion-badge class="hist-badge" [ngClass]="getHistoryTypeClass(entry.type)">{{ getHistoryTypeName(entry.type) }}</ion-badge>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="2000" (didDismiss)="toastOpen = false"></ion-toast>
+</ion-content>

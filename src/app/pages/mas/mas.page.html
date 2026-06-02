@@ -1,0 +1,432 @@
+<ion-content class="mas-content">
+  <div class="mas-wrapper">
+    <div class="mas-card">
+      
+      <!-- Premium Segment Header -->
+      <div class="mas-card-header">
+        <div class="mas-card-title">
+          <span class="panel-label">{{ isCliente ? 'CLIENTE' : isTransportista ? 'OPERADOR DE REPARTO' : 'CENTRO DE CONTROL' }}</span>
+          <h2>{{ isCliente ? 'Perfil y mis datos' : isTransportista ? 'Perfil y rutas asignadas' : 'Más Opciones & Perfil' }}</h2>
+        </div>
+        <ion-button fill="clear" [routerLink]="[isCliente ? '/catalogo' : isTransportista ? '/trazabilidad' : '/dashboard']" class="close-btn">
+          <ion-icon name="close-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <!-- Segment Selector Switch -->
+      <div class="segment-container">
+        <ion-segment [value]="activeTab" (ionChange)="onTabChange($event)" class="premium-segment">
+          <ion-segment-button value="modulos">
+            <ion-label>Módulos Adicionales</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="perfil">
+            <ion-label>Mi Perfil</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <!-- TAB 1: MODULOS ADICIONALES GRID -->
+      <div class="mas-grid" *ngIf="activeTab === 'modulos'">
+        <ng-container *ngIf="isCliente; else nonClienteModuleGrid">
+          <div class="profile-stat-row">
+            <div class="stat-card">
+              <strong>{{ clienteSolicitudes.length }}</strong>
+              <span>Solicitudes totales</span>
+            </div>
+            <div class="stat-card">
+              <strong>{{ activeSolicitudes }}</strong>
+              <span>Activas</span>
+            </div>
+            <div class="stat-card">
+              <strong>{{ deliveredSolicitudes }}</strong>
+              <span>Entregadas</span>
+            </div>
+            <div class="stat-card">
+              <strong>{{ rejectedSolicitudes }}</strong>
+              <span>Rechazadas</span>
+            </div>
+          </div>
+
+          <button type="button" class="mas-tile" routerLink="/catalogo">
+            <div class="tile-icon">
+              <ion-icon name="bag"></ion-icon>
+            </div>
+            <span class="tile-label">Catálogo</span>
+          </button>
+          <button type="button" class="mas-tile" routerLink="/solicitudes">
+            <div class="tile-icon">
+              <ion-icon name="list-outline"></ion-icon>
+            </div>
+            <span class="tile-label">Mis Solicitudes</span>
+          </button>
+          <button type="button" class="mas-tile" routerLink="/alertas">
+            <div class="tile-icon">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+            </div>
+            <span class="tile-label">Alertas</span>
+          </button>
+        </ng-container>
+
+        <ng-template #nonClienteModuleGrid>
+          <ng-container *ngIf="isTransportista; else supervisorModuleGrid">
+            <div class="profile-stat-row">
+              <div class="stat-card">
+                <strong>{{ transportistaOrders.length }}</strong>
+                <span>Órdenes asignadas</span>
+              </div>
+              <div class="stat-card">
+                <strong>{{ onRouteDeliveries }}</strong>
+                <span>En ruta</span>
+              </div>
+              <div class="stat-card">
+                <strong>{{ pendingDeliveries }}</strong>
+                <span>Pendientes</span>
+              </div>
+              <div class="stat-card">
+                <strong>{{ completedDeliveries }}</strong>
+                <span>Entregadas</span>
+              </div>
+            </div>
+
+            <button type="button" class="mas-tile" routerLink="/trazabilidad">
+              <div class="tile-icon">
+                <ion-icon name="navigate-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Trazabilidad</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/alertas">
+              <div class="tile-icon">
+                <ion-icon name="notifications-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Alertas</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/mapa">
+              <div class="tile-icon">
+                <ion-icon name="map-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Mapa Global</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/scanner">
+              <div class="tile-icon">
+                <ion-icon name="qr-code-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Escáner QR</span>
+            </button>
+          </ng-container>
+
+          <ng-template #supervisorModuleGrid>
+            <button type="button" class="mas-tile" routerLink="/trazabilidad">
+              <div class="tile-icon">
+                <ion-icon name="navigate-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Trazabilidad</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/alertas">
+              <div class="tile-icon">
+                <ion-icon name="notifications-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Alertas</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/historial">
+              <div class="tile-icon">
+                <ion-icon name="time-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Historial</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/reportes">
+              <div class="tile-icon">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Reportes</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/mapa">
+              <div class="tile-icon">
+                <ion-icon name="map-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Mapa global</span>
+            </button>
+            <button type="button" class="mas-tile" routerLink="/scanner">
+              <div class="tile-icon">
+                <ion-icon name="qr-code-outline"></ion-icon>
+              </div>
+              <span class="tile-label">Escáner QR</span>
+            </button>
+          </ng-template>
+        </ng-template>
+      </div>
+
+      <!-- TAB 2: MI PERFIL VIEW -->
+      <div class="perfil-tab-view animate-fade" *ngIf="activeTab === 'perfil'">
+        <div class="avatar-section">
+          <div class="avatar-large">
+            {{ profileData.name.substring(0, 2) | uppercase }}
+          </div>
+          <h3>{{ profileData.name }}</h3>
+          <ion-badge color="success">{{ profileData.role }}</ion-badge>
+        </div>
+
+        <div class="profile-details-list">
+          <div class="detail-item">
+            <ion-icon name="business-outline"></ion-icon>
+            <div class="txt">
+              <span class="lbl">Empresa</span>
+              <strong>{{ profileData.company }}</strong>
+            </div>
+          </div>
+          <div class="detail-item">
+            <ion-icon name="mail-outline"></ion-icon>
+            <div class="txt">
+              <span class="lbl">Correo Electrónico</span>
+              <strong>{{ profileData.email }}</strong>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="isTransportista">
+            <ion-icon name="car-outline"></ion-icon>
+            <div class="txt">
+              <span class="lbl">Vehículo</span>
+              <strong>{{ profileData.vehicle }}</strong>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="isTransportista">
+            <ion-icon name="navigate-outline"></ion-icon>
+            <div class="txt">
+              <span class="lbl">Zona Asignada</span>
+              <strong>{{ profileData.assignedZone }}</strong>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="isTransportista">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <div class="txt">
+              <span class="lbl">Evaluación</span>
+              <strong>{{ profileData.rating }}</strong>
+            </div>
+          </div>
+          <div class="detail-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <div class="txt">
+              <span class="lbl">Último Acceso Registrado</span>
+              <strong>{{ profileData.lastAccess }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-summary-row" *ngIf="isCliente">
+          <div class="summary-chip">
+            <span class="summary-label">Totales</span>
+            <strong>{{ clienteSolicitudes.length }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Activas</span>
+            <strong>{{ activeSolicitudes }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Pendientes</span>
+            <strong>{{ pendingSolicitudes }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Entregadas</span>
+            <strong>{{ deliveredSolicitudes }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Rechazadas</span>
+            <strong>{{ rejectedSolicitudes }}</strong>
+          </div>
+        </div>
+
+        <div class="latest-requests" *ngIf="isCliente && latestSolicitudes.length">
+          <h4>Últimas solicitudes</h4>
+          <div class="latest-item" *ngFor="let s of latestSolicitudes">
+            <div>
+              <strong>{{ s.code }}</strong>
+              <div class="small-label">{{ s.fecha | date:'short' }}</div>
+            </div>
+            <div class="status-badge">
+              <ion-badge [color]="s.estado === 'Entregada' ? 'success' : s.estado === 'Rechazada' ? 'danger' : s.estado === 'Pendiente de aprobación' ? 'warning' : 'primary'">
+                {{ s.estado }}
+              </ion-badge>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-summary-row" *ngIf="isTransportista">
+          <div class="summary-chip">
+            <span class="summary-label">Activas</span>
+            <strong>{{ transportistaOrders.length }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">En ruta</span>
+            <strong>{{ onRouteDeliveries }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Pendientes</span>
+            <strong>{{ pendingDeliveries }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Completadas</span>
+            <strong>{{ completedDeliveries }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Urgentes</span>
+            <strong>{{ urgentDeliveries }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Cadena fría</span>
+            <strong>{{ coldChainDeliveries }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Incidencias</span>
+            <strong>{{ incidentOrders }}</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Puntualidad</span>
+            <strong>{{ punctualityRate }}%</strong>
+          </div>
+          <div class="summary-chip">
+            <span class="summary-label">Alertas</span>
+            <strong>{{ activeAlerts }}</strong>
+          </div>
+        </div>
+
+        <div class="latest-requests" *ngIf="isTransportista && latestTransportistaOrders.length">
+          <h4>Últimas órdenes asignadas</h4>
+          <div class="latest-item" *ngFor="let order of latestTransportistaOrders">
+            <div>
+              <strong>{{ order.code }}</strong>
+              <div class="small-label">{{ order.destino }}</div>
+              <div class="small-label">Entrega: {{ order.fechaEntrega | date:'short' }}</div>
+            </div>
+            <div class="status-badge">
+              <ion-badge [color]="order.estado === 'Entregado' ? 'success' : order.estado === 'Incidencia' ? 'danger' : order.estado === 'Pendiente' ? 'warning' : 'primary'">
+                {{ order.estado }}
+              </ion-badge>
+            </div>
+          </div>
+        </div>
+
+        <div class="state-control" *ngIf="isTransportista" style="margin-top:1rem">
+          <label class="small muted">Estado actual</label>
+          <div class="state-buttons">
+            <ion-button size="small" fill="clear" [color]="profileData.state === 'Disponible' ? 'success' : 'medium'" (click)="changeState('Disponible')">Disponible</ion-button>
+            <ion-button size="small" fill="clear" [color]="profileData.state === 'En ruta' ? 'primary' : 'medium'" (click)="changeState('En ruta')">En ruta</ion-button>
+            <ion-button size="small" fill="clear" [color]="profileData.state === 'Descanso' ? 'warning' : 'medium'" (click)="changeState('Descanso')">Descanso</ion-button>
+            <ion-button size="small" fill="clear" [color]="profileData.state === 'Inactivo' ? 'danger' : 'medium'" (click)="changeState('Inactivo')">Inactivo</ion-button>
+          </div>
+        </div>
+
+        <div class="action-buttons-vertical">
+          <ion-button expand="block" fill="solid" color="primary" (click)="openEditProfile()">
+            <ion-icon slot="start" name="create-outline"></ion-icon>
+            Editar Perfil
+          </ion-button>
+          
+          <ion-button expand="block" fill="outline" color="light" (click)="openChangePassword()">
+            <ion-icon slot="start" name="key-outline"></ion-icon>
+            Cambiar Contraseña
+          </ion-button>
+          
+          <ion-button expand="block" fill="clear" color="danger" (click)="logout()" class="logout-btn">
+            <ion-icon slot="start" name="log-out-outline"></ion-icon>
+            Cerrar Sesión
+          </ion-button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR PERFIL -->
+  <ion-modal [isOpen]="showEditProfileModal" (didDismiss)="showEditProfileModal = false" class="premium-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Editar Datos Personales</ion-title>
+          <ion-button slot="end" fill="clear" (click)="showEditProfileModal = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      
+      <div class="modal-body ion-padding">
+        <p class="subtitle-label">ACTUALICE LA INFORMACIÓN DE SU PERFIL DE USUARIO</p>
+        
+        <ion-item class="premium-input-item">
+          <ion-input [(ngModel)]="editName" label="Nombre Completo" labelPlacement="floating"></ion-input>
+        </ion-item>
+        
+        <ion-item class="premium-input-item">
+          <ion-input [(ngModel)]="editEmail" label="Correo Electrónico" labelPlacement="floating"></ion-input>
+        </ion-item>
+        
+        <ion-item class="premium-input-item">
+          <ion-input [(ngModel)]="editCompany" label="Empresa / Organización" labelPlacement="floating"></ion-input>
+        </ion-item>
+        
+        <div class="modal-actions">
+          <ion-button expand="block" color="success" (click)="submitEditProfile()">
+            <ion-icon slot="start" name="save-outline"></ion-icon>
+            Guardar Cambios
+          </ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MODAL CAMBIAR CONTRASEÑA -->
+  <ion-modal [isOpen]="showChangePasswordModal" (didDismiss)="showChangePasswordModal = false" class="premium-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Actualizar Contraseña</ion-title>
+          <ion-button slot="end" fill="clear" (click)="showChangePasswordModal = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      
+      <div class="modal-body ion-padding">
+        <p class="subtitle-label">INGRESE SU CONTRASEÑA ACTUAL Y DEFINA LA NUEVA CLAVE</p>
+        
+        <ion-item class="premium-input-item">
+          <ion-input type="password" [(ngModel)]="currentPassword" label="Contraseña Actual" labelPlacement="floating"></ion-input>
+        </ion-item>
+        
+        <div *ngIf="newPassword.length > 0" style="padding: 6px 16px 4px; font-size: 12px; line-height: 1.8;">
+          <span [style.color]="newPassword.length >= 8 ? 'var(--ion-color-success)' : 'var(--ion-color-danger)'">
+            <ion-icon [name]="newPassword.length >= 8 ? 'checkmark-circle-outline' : 'close-circle-outline'"></ion-icon>
+            Mínimo 8 caracteres
+          </span><br>
+          <span [style.color]="getPasswordColor(hasUppercase(newPassword))">
+            <ion-icon [name]="getPasswordIcon(hasUppercase(newPassword))"></ion-icon>
+            Una letra mayúscula
+          </span><br>
+          <span [style.color]="getPasswordColor(hasNumber(newPassword))">
+            <ion-icon [name]="getPasswordIcon(hasNumber(newPassword))"></ion-icon>
+            Un número
+          </span>
+        </div>
+
+        <ion-item class="premium-input-item">
+          <ion-input type="password" [(ngModel)]="newPassword" label="Nueva Contraseña" labelPlacement="floating"></ion-input>
+        </ion-item>
+        
+        <ion-item class="premium-input-item">
+          <ion-input type="password" [(ngModel)]="confirmPassword" label="Confirmar Nueva Contraseña" labelPlacement="floating"></ion-input>
+        </ion-item>
+
+        <div *ngIf="passwordError" style="padding: 4px 16px 8px; font-size: 12px; color: var(--ion-color-danger);">
+          <ion-icon name="alert-circle-outline"></ion-icon> {{ passwordError }}
+        </div>
+
+        <div class="modal-actions">
+          <ion-button expand="block" color="success" (click)="submitChangePassword()">
+            <ion-icon slot="start" name="shield-checkmark-outline"></ion-icon>
+            Actualizar Clave
+          </ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Toast Feedbacks -->
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="2000" (didDismiss)="toastOpen = false"></ion-toast>
+</ion-content>

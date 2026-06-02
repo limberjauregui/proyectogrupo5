@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Mis solicitudes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="solicitudes-page">
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- BUSQUEDA Y FILTROS -->
+  <div class="search-section">
+    <ion-searchbar 
+      placeholder="Buscar por código o producto..." 
+      [(ngModel)]="searchText" 
+      (ionInput)="onSearchChange()"
+      class="custom-searchbar">
+    </ion-searchbar>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Estado:</label>
+        <ion-select [(ngModel)]="estadoFilter" (ionChange)="onFilterChange()" class="state-select">
+          <ion-select-option value="Todos">Todos</ion-select-option>
+          <ion-select-option value="Pendiente de aprobación">Pendiente</ion-select-option>
+          <ion-select-option value="Aprobada">Aprobada</ion-select-option>
+          <ion-select-option value="En preparación">En preparación</ion-select-option>
+          <ion-select-option value="En camino">En camino</ion-select-option>
+          <ion-select-option value="Entregada">Entregada</ion-select-option>
+          <ion-select-option value="Rechazada">Rechazada</ion-select-option>
+          <ion-select-option value="Cancelada">Cancelada</ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="solicitudes-container ion-padding">
+    <!-- SI NO HAY RESULTADOS -->
+    <div *ngIf="filtered.length === 0" class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No hay solicitudes</h3>
+      <p>Intenta cambiar los filtros o crear una nueva solicitud en el catálogo.</p>
+    </div>
+
+    <!-- LISTA DE SOLICITUDES -->
+    <div *ngFor="let s of filtered" class="solicitud-item">
+      <ion-card class="solicitud-card" [routerLink]="['/solicitud', s.id]">
+        <!-- HEADER: Código y estado -->
+        <div class="card-header">
+          <div class="header-left">
+            <div class="codigo">{{ s.code }}</div>
+            <div class="fecha">{{ s.fecha | date:'short' }}</div>
+          </div>
+          <div class="header-right">
+            <ion-badge [color]="getStateColor(s.estado)">{{ s.estado }}</ion-badge>
+          </div>
+        </div>
+
+        <!-- BODY: Productos y detalles -->
+        <div class="card-body">
+          <div class="items-summary">
+            <span class="item-count">{{ s.totalItems }} productos</span>
+            <div class="product-preview">
+              <span *ngFor="let item of s.items.slice(0, 2)" class="product-tag">
+                {{ getProductName(item.productId) }}
+              </span>
+              <span *ngIf="s.items.length > 2" class="product-more">+{{ s.items.length - 2 }} más</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER: Botón y acciones -->
+        <div class="card-footer">
+          <div class="action-buttons">
+            <ion-button 
+              size="small" 
+              fill="solid" 
+              color="primary"
+              (click)="$event.stopPropagation(); viewDetail(s)">
+              Ver detalle
+              <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+            </ion-button>
+
+            <ion-button 
+              *ngIf="canCancelSolicitud(s)"
+              size="small" 
+              fill="outline" 
+              color="danger"
+              (click)="$event.stopPropagation(); cancelSolicitud(s)">
+              Cancelar
+            </ion-button>
+          </div>
+        </div>
+      </ion-card>
+    </div>
+  </div>
+
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="1600" (didDismiss)="toastOpen=false"></ion-toast>
+</ion-content>

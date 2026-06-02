@@ -1,0 +1,139 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Reportes ejecutivos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="reportes-page ion-padding">
+  <div class="shell">
+    <section class="hero card-panel">
+      <div class="hero-copy">
+        <p class="panel-label">INTELIGENCIA DE NEGOCIO</p>
+        <h2>Reportes y análisis</h2>
+      </div>
+      <div class="hero-actions">
+        <div class="period-buttons">
+          <button type="button" [class.active]="selectedPeriod === 'Semana'" (click)="setPeriod('Semana')">Semana</button>
+          <button type="button" [class.active]="selectedPeriod === 'Mes'" (click)="setPeriod('Mes')">Mes</button>
+          <button type="button" [class.active]="selectedPeriod === 'Trimestre'" (click)="setPeriod('Trimestre')">Trimestre</button>
+          <button type="button" [class.active]="selectedPeriod === 'Año'" (click)="setPeriod('Año')">Año</button>
+        </div>
+        <div class="hero-buttons">
+          <ion-button fill="clear" color="medium" (click)="exportCsv()">
+            <ion-icon slot="start" [icon]="downloadOutline"></ion-icon>
+            CSV
+          </ion-button>
+          <ion-button fill="solid" color="primary" (click)="exportPdf()">
+            <ion-icon slot="start" [icon]="documentTextOutline"></ion-icon>
+            Exportar PDF
+          </ion-button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-grid">
+      <article *ngFor="let metric of metrics" class="stat-card card-panel">
+        <div class="stat-card-head">
+          <div class="icon-box" [ngClass]="metric.colorClass">
+            <ion-icon [icon]="metric.icon"></ion-icon>
+          </div>
+          <div>
+            <p class="stat-label">{{ metric.label }}</p>
+            <div class="stat-value">{{ metric.value }}</div>
+          </div>
+        </div>
+        <ion-badge [ngClass]="metric.colorClass">{{ metric.trend }}</ion-badge>
+      </article>
+    </section>
+
+    <section class="chart-card card-panel">
+      <div class="chart-card-header">
+        <div>
+          <p class="panel-label">RENDIMIENTO</p>
+          <h3>Entregas en el tiempo</h3>
+        </div>
+        <div class="chart-legend">
+          <div><span class="legend completed"></span> Completadas</div>
+          <div><span class="legend incidents"></span> Retrasadas</div>
+        </div>
+      </div>
+      <div class="line-chart">
+        <svg viewBox="0 0 560 240" preserveAspectRatio="none">
+          <g class="grid-lines">
+            <line x1="40" y1="20" x2="520" y2="20"></line>
+            <line x1="40" y1="60" x2="520" y2="60"></line>
+            <line x1="40" y1="100" x2="520" y2="100"></line>
+            <line x1="40" y1="140" x2="520" y2="140"></line>
+            <line x1="40" y1="180" x2="520" y2="180"></line>
+            <line x1="40" y1="220" x2="520" y2="220"></line>
+          </g>
+          <polyline class="area completed" [attr.points]="completedLinePoints"></polyline>
+          <polyline class="line completed" [attr.points]="completedLinePoints"></polyline>
+          <polyline class="line incidents" [attr.points]="delayedLinePoints"></polyline>
+          <g class="dots">
+            <circle *ngFor="let point of lineDataCompleted; let i = index" [attr.cx]="40 + i * 104" [attr.cy]="calcY(point, lineDataCompleted)" r="4" class="dot completed"></circle>
+            <circle *ngFor="let point of lineDataDelayed; let i = index" [attr.cx]="40 + i * 104" [attr.cy]="calcY(point, lineDataDelayed)" r="4" class="dot incidents"></circle>
+          </g>
+        </svg>
+      </div>
+      <div class="x-axis">
+        <span *ngFor="let label of lineLabels">{{ label }}</span>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <article class="card-panel small-chart">
+        <p class="panel-label">DISTRIBUCIÓN</p>
+        <h3>Pedidos por categoría</h3>
+        <div class="bar-chart">
+          <div *ngFor="let category of categories" class="bar-row">
+            <span>{{ category.name }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="(category.value / categoryMax) * 100" [style.background]="category.color"></div>
+            </div>
+            <strong>{{ category.value }}</strong>
+          </div>
+        </div>
+      </article>
+      <article class="card-panel small-chart">
+        <p class="panel-label">FLOTA</p>
+        <h3>Entregas por transportista</h3>
+        <div class="donut-shell">
+          <svg viewBox="0 0 180 180" class="donut-chart">
+            <circle cx="90" cy="90" r="40" class="donut-bg"></circle>
+            <circle *ngFor="let segment of donutSegments" cx="90" cy="90" r="40" fill="transparent" [attr.stroke]="segment.color" stroke-width="18" [attr.stroke-dasharray]="segment.dashArray" [attr.stroke-dashoffset]="segment.offset" stroke-linecap="round" transform="rotate(-90 90 90)"></circle>
+          </svg>
+          <div class="donut-legend">
+            <span *ngFor="let segment of transportistas" class="legend-row">
+              <span class="legend-dot" [style.background]="segment.color"></span>
+              {{ segment.name }}
+            </span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="ranking card-panel">
+      <div class="ranking-header">
+        <p class="panel-label">RANKING</p>
+        <h3>Top transportistas</h3>
+      </div>
+      <div class="table-header">
+        <span>#</span>
+        <span>Nombre</span>
+        <span>Entregas</span>
+        <span>Puntualidad</span>
+        <span>Calificación</span>
+      </div>
+      <div *ngFor="let row of ranking; let i = index" class="table-row">
+        <span>{{ i + 1 }}</span>
+        <span>{{ row.name }}</span>
+        <span>{{ row.deliveries }}</span>
+        <span><ion-badge [class.positive]="row.punctuality >= 90" [class.negative]="row.punctuality < 90">{{ row.punctuality }}%</ion-badge></span>
+        <span class="row-score">★ {{ row.score }}</span>
+      </div>
+    </section>
+  </div>
+
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="1600"></ion-toast>
+</ion-content>

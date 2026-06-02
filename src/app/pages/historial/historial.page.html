@@ -1,0 +1,169 @@
+<ion-header [translucent]="true" class="app-header ion-no-border">
+  <ion-toolbar class="app-toolbar">
+    <ion-title>Historial Logístico</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="historial-page ion-padding">
+  <div class="shell">
+    
+    <!-- Top Action Card -->
+    <div class="header card-panel">
+      <div class="header-text">
+        <span class="panel-label">Logística y Auditoría</span>
+        <h2>Historial de Movimientos</h2>
+        <p>Inspecciona registros de entregas finalizadas, incidencias críticas y ajustes de inventario.</p>
+      </div>
+      <div class="header-actions">
+        <ion-button fill="outline" color="light" (click)="exportCsv()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Exportar CSV
+        </ion-button>
+        <ion-button color="primary" (click)="exportPdf()">
+          <ion-icon slot="start" name="document-text-outline"></ion-icon>
+          Imprimir PDF
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- KPIs Row -->
+    <div class="metrics">
+      <div class="metric card-panel">
+        <div class="label">ENTREGAS REALIZADAS</div>
+        <div class="value percent">{{ kpis.totalDeliveries }}</div>
+        <div class="sub">Servicios completados</div>
+      </div>
+      <div class="metric card-panel">
+        <div class="label">INCIDENCIAS REPORTADAS</div>
+        <div class="value percent" [class.danger]="kpis.incidentsCount > 0">{{ kpis.incidentsCount }}</div>
+        <div class="sub">Eventos de desviación</div>
+      </div>
+      <div class="metric card-panel">
+        <div class="label">TIEMPO PROMEDIO</div>
+        <div class="value percent info">{{ kpis.avgTime }}</div>
+        <div class="sub">Tránsito estimado</div>
+      </div>
+    </div>
+
+    <!-- Live Filters Panel -->
+    <div class="filter-card card-panel">
+      <div class="filter-label-row">
+        <ion-icon name="funnel-outline" class="filter-icon"></ion-icon>
+        <span class="panel-label">Filtros de Búsqueda</span>
+      </div>
+      
+      <div class="filters-grid">
+        <!-- Searchbar -->
+        <ion-searchbar 
+          placeholder="Buscar por ID, cliente, producto..." 
+          [(ngModel)]="query" 
+          (ionInput)="applyFilters()"
+          class="premium-search"
+        ></ion-searchbar>
+        
+        <!-- Type Filter -->
+        <ion-select [(ngModel)]="typeFilter" (ionChange)="applyFilters()" interface="popover" placeholder="Tipo" class="premium-select-history">
+          <ion-select-option value="TODOS">Todos los tipos</ion-select-option>
+          <ion-select-option value="ENTREGA">Entregas</ion-select-option>
+          <ion-select-option value="INCIDENCIA">Incidencias</ion-select-option>
+          <ion-select-option value="INVENTARIO">Inventario</ion-select-option>
+        </ion-select>
+        
+        <!-- Status Filter -->
+        <ion-select [(ngModel)]="statusFilter" (ionChange)="applyFilters()" interface="popover" placeholder="Estado" class="premium-select-history">
+          <ion-select-option value="TODOS">Todos los estados</ion-select-option>
+          <ion-select-option value="COMPLETADO">Completados</ion-select-option>
+          <ion-select-option value="CON INCIDENCIA">Incidencias</ion-select-option>
+          <ion-select-option value="CANCELADO">Cancelados</ion-select-option>
+          <ion-select-option value="AJUSTADO">Ajustes</ion-select-option>
+        </ion-select>
+        
+        <!-- Transportista Filter -->
+        <ion-select [(ngModel)]="driverFilter" (ionChange)="applyFilters()" interface="popover" placeholder="Conductor" class="premium-select-history">
+          <ion-select-option value="TODOS">Cualquier conductor</ion-select-option>
+          <ion-select-option value="laura">Laura Rojas</ion-select-option>
+          <ion-select-option value="carlos">Carlos Medina</ion-select-option>
+          <ion-select-option value="ana">Ana García</ion-select-option>
+          <ion-select-option value="supervisor">Supervisor (Ajustes)</ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <!-- Results List -->
+    <div class="list">
+      <div *ngFor="let item of filtered" class="list-item-card card-panel" [class.expanded]="item.expanded">
+        <div class="main-info" (click)="toggleExpand(item)">
+          <div class="left-details">
+            <div class="badge-row">
+              <span class="record-id">{{ item.id }}</span>
+              <ion-badge 
+                [color]="item.status === 'COMPLETADO' ? 'success' : item.status === 'AJUSTADO' ? 'tertiary' : item.status === 'CON INCIDENCIA' ? 'warning' : 'danger'"
+                class="status-badge"
+              >
+                {{ item.status }}
+              </ion-badge>
+              <span class="record-type-label">{{ item.type }}</span>
+            </div>
+            
+            <h3 class="record-title">{{ item.title }}</h3>
+            <p class="record-subtitle">{{ item.subtitle }}</p>
+            <div class="record-date">{{ item.date | date:'dd LLL yyyy, HH:mm' }}</div>
+          </div>
+          
+          <div class="right-action">
+            <ion-button fill="clear" color="primary">
+              <ion-icon [name]="item.expanded ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Collapsible Details Container -->
+        <div class="expanded-details animate-expand" *ngIf="item.expanded">
+          <div class="details-divider"></div>
+          <div class="details-grid">
+            <div class="detail-cell" *ngFor="let det of item.details">
+              <span class="det-label">{{ det.label }}</span>
+              <span class="det-val">{{ det.value }}</span>
+            </div>
+            <div class="detail-cell">
+              <span class="det-label">Responsable Asignado</span>
+              <span class="det-val">{{ item.driver }}</span>
+            </div>
+          </div>
+
+          <div class="history-extra" *ngIf="item.timeline?.length">
+            <h4>Timeline de Trazabilidad</h4>
+            <div class="timeline-row" *ngFor="let step of item.timeline">
+              <span class="timeline-step">{{ step.step | titlecase }}</span>
+              <span class="timeline-date">{{ step.timestamp | date:'dd/MM/yyyy HH:mm' }}</span>
+              <p class="timeline-note" *ngIf="step.notes">{{ step.notes }}</p>
+            </div>
+          </div>
+
+          <div class="detail-actions" *ngIf="item.type === 'ENTREGA' || item.type === 'INCIDENCIA'">
+            <ion-button expand="block" fill="outline" (click)="viewOrderById(item.id)">Ver Orden</ion-button>
+          </div>
+
+          <div class="signature-preview" *ngIf="item.signatureUrl">
+            <h4>Firma registrada</h4>
+            <img [src]="item.signatureUrl" alt="Firma de entrega" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- Empty State -->
+      <div class="empty-state-card card-panel" *ngIf="filtered.length === 0">
+        <ion-icon name="close-circle-outline" class="empty-icon"></ion-icon>
+        <h3>No se encontraron registros</h3>
+        <p>Modifica los filtros o la búsqueda para ver más resultados del historial.</p>
+      </div>
+    </div>
+  </div>
+
+  <ion-toast
+    [isOpen]="toastOpen"
+    [message]="toastMessage"
+    duration="2200"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

@@ -1,0 +1,126 @@
+<ion-header [translucent]="true" class="app-header ion-no-border">
+  <ion-toolbar class="app-toolbar">
+    <ion-title>Centro de Alertas</ion-title>
+    <ion-badge slot="end" *ngIf="unreadCount > 0" color="danger" class="header-badge">
+      {{ unreadCount }} pendientes
+    </ion-badge>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="alertas-page ion-padding">
+  <div class="alerts-wrapper">
+    
+    <!-- Header panel with action controls -->
+    <div class="header-card">
+      <div class="header-info">
+        <span class="panel-label">LOGISTICA VITALFLOW</span>
+        <h2>Panel de Incidentes & Eventos</h2>
+        <p>Monitoreo proactivo de la cadena de suministro y alarmas críticas.</p>
+      </div>
+      <div class="header-controls">
+        <ion-button fill="outline" color="light" class="round-btn" (click)="toggleSound()">
+          <ion-icon [name]="soundOn ? 'volume-high-outline' : 'volume-mute-outline'"></ion-icon>
+        </ion-button>
+        <ion-button fill="solid" color="primary" (click)="markAllRead()" [disabled]="unreadCount === 0">
+          <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+          Marcar Todo Leído
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Stats summary Row -->
+    <div class="stats-row">
+      <div class="stat-chip total" (click)="typeFilter = 'TODAS'; applyFilters()">
+        <span class="chip-value">{{ filtered.length }}</span>
+        <span class="chip-label">Registradas</span>
+      </div>
+      <div class="stat-chip critical" (click)="typeFilter = 'CRÍTICA'; applyFilters()">
+        <span class="chip-value">{{ criticalCount }}</span>
+        <span class="chip-label">Críticas</span>
+      </div>
+      <div class="stat-chip warning" (click)="typeFilter = 'ADVERTENCIA'; applyFilters()">
+        <span class="chip-value">{{ warningCount }}</span>
+        <span class="chip-label">Advertencias</span>
+      </div>
+      <div class="stat-chip info" (click)="typeFilter = 'INFORMACIÓN'; applyFilters()">
+        <span class="chip-value">{{ infoCount }}</span>
+        <span class="chip-label">Informativas</span>
+      </div>
+    </div>
+
+    <!-- Filtering Bar -->
+    <div class="filters-bar">
+      <div class="filter-chips">
+        <button class="chip" [class.active]="typeFilter === 'TODAS'" (click)="typeFilter = 'TODAS'; applyFilters()">Todas</button>
+        <button class="chip" [class.active]="typeFilter === 'CRÍTICA'" (click)="typeFilter = 'CRÍTICA'; applyFilters()">Críticas</button>
+        <button class="chip" [class.active]="typeFilter === 'ADVERTENCIA'" (click)="typeFilter = 'ADVERTENCIA'; applyFilters()">Advertencias</button>
+        <button class="chip" [class.active]="typeFilter === 'INFORMACIÓN'" (click)="typeFilter = 'INFORMACIÓN'; applyFilters()">Informativas</button>
+        <button class="chip" [class.active]="typeFilter === 'TEMPERATURA'" (click)="typeFilter = 'TEMPERATURA'; applyFilters()">Temperatura</button>
+      </div>
+      
+      <div class="status-selector">
+        <ion-select [(ngModel)]="statusFilter" (ionChange)="applyFilters()" interface="popover" class="state-select">
+          <ion-select-option value="TODAS">Todos los estados</ion-select-option>
+          <ion-select-option value="NO_LEÍDAS">No leídas</ion-select-option>
+          <ion-select-option value="LEÍDAS">Leídas</ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="alerts-list">
+      <div 
+        class="alert-card animate-card anim-slide-right" 
+        *ngFor="let alert of filtered; let i = index" 
+        [ngClass]="[getAlertClass(alert.type), alert.read ? 'read' : 'unread']"
+        [ngStyle]="{'animation-delay': (i < 8 ? i * 0.05 : 0.4) + 's'}"
+      >
+        <div class="alert-header">
+          <div class="alert-icon-wrapper">
+            <ion-icon [name]="getAlertIcon(alert.type)"></ion-icon>
+          </div>
+          <div class="alert-body">
+            <div class="meta-row">
+              <span class="alert-type">{{ alert.type }}</span>
+              <span class="alert-time">{{ alert.date | date:'dd/MM HH:mm' }}</span>
+            </div>
+            <h3>{{ alert.message }}</h3>
+            <div class="related-badge" *ngIf="alert.related">
+              <span class="ref-badge">{{ alert.related.type | uppercase }}: {{ alert.related.id }}</span>
+            </div>
+          </div>
+          
+          <div class="alert-state-dot" *ngIf="!alert.read"></div>
+        </div>
+
+        <div class="alert-actions">
+          <ion-button fill="solid" color="primary" size="small" (click)="handleAlert(alert)">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Atender Incidencia
+          </ion-button>
+          
+          <ion-button fill="clear" color="medium" size="small" (click)="markAsRead(alert)" *ngIf="!alert.read">
+            Marcar leída
+          </ion-button>
+          
+          <ion-button fill="clear" color="danger" size="small" (click)="deleteAlert(alert)" class="trash-btn">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filtered.length === 0" style="text-align:center; padding: 2rem; color: var(--ion-color-medium)">
+      <ion-icon name="checkmark-circle-outline" style="font-size: 48px; display: block; margin: 0 auto 1rem;"></ion-icon>
+      <p>No hay alertas para mostrar</p>
+    </div>
+  </div>
+
+  <ion-toast
+    [isOpen]="toastOpen"
+    [message]="toastMessage"
+    duration="2000"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

@@ -1,0 +1,382 @@
+<ion-header [translucent]="true" class="app-header ion-no-border">
+  <ion-toolbar class="app-toolbar">
+    <ion-title>Trazabilidad Avanzada</ion-title>
+    <div slot="end" class="header-badge-container" *ngIf="selectedOrder">
+      <ion-badge [color]="getStatusColor(selectedOrder.estado)">
+        {{ selectedOrder.estado | uppercase }}
+      </ion-badge>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="trazabilidad-page ion-padding">
+  <div class="page-shell">
+    
+    <!-- Hero Header Panel -->
+    <div class="hero-card">
+      <div class="hero-text">
+        <span class="section-label">MEDLOG LOGISTICS SYSTEM</span>
+        <h2>Monitoreo en Tiempo Real</h2>
+        <p class="hero-copy">
+          Trazabilidad avanzada de temperatura, alertas de desviación térmica y control de hitos de entrega.
+        </p>
+      </div>
+      <div class="hero-controls" *ngIf="orders.length > 0">
+        <div class="selector-wrapper">
+          <ion-icon name="car-outline" class="select-icon"></ion-icon>
+          <ion-select 
+            [value]="selectedOrder?.id" 
+            (ionChange)="onOrderChange($event)" 
+            interface="popover" 
+            placeholder="Seleccionar orden"
+            class="premium-select"
+          >
+            <ion-select-option *ngFor="let order of orders" [value]="order.id">
+              {{ order.code }} - {{ order.cliente }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state-panel card-panel text-center" *ngIf="!selectedOrder">
+      <ion-icon name="inbox-outline" class="empty-icon"></ion-icon>
+      <h3>Selecciona una entrega</h3>
+      <p *ngIf="orders.length === 0">No tienes órdenes asignadas en este momento.</p>
+      <p *ngIf="orders.length > 0">Elige una entrega de la lista para ver su trazabilidad completa.</p>
+      <div class="selector-wrapper" *ngIf="orders.length > 0">
+        <ion-icon name="car-outline" class="select-icon"></ion-icon>
+        <ion-select 
+          placeholder="Seleccionar entrega..."
+          interface="popover" 
+          (ionChange)="onOrderChange($event)"
+          class="premium-select"
+        >
+          <ion-select-option *ngFor="let order of orders" [value]="order.id">
+            {{ order.code }} → {{ order.cliente }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <div class="main-grid" *ngIf="selectedOrder">
+      
+      <!-- Left Panel: Map & Cold Chain info -->
+      <div class="left-col">
+        
+        <!-- Live Route & ETA Card -->
+        <div class="map-card card-panel">
+          <div class="card-head">
+            <div>
+              <p class="panel-label">Flujo de Ruta</p>
+              <h3>Tránsito Satelital (Emulado)</h3>
+            </div>
+            <div class="eta-pill" *ngIf="selectedOrder.estado === 'En camino'">
+              <ion-icon name="time-outline" slot="start"></ion-icon>
+              ETA: ~{{ etaMinutes }} min
+            </div>
+          </div>
+          
+          <div class="map-view">
+            <!-- Representación visual premium de la ruta SVG -->
+            <svg class="map-svg-mock" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+              <!-- Calles -->
+              <path d="M 20 40 L 380 40" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
+              <path d="M 20 120 L 380 120" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
+              <path d="M 120 20 L 120 180" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
+              <path d="M 280 20 L 280 180" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
+              
+              <!-- Línea de Ruta de la Entrega -->
+              <path 
+                d="M 40 40 L 120 40 L 120 120 L 280 120 L 280 60" 
+                stroke="#0f766e" 
+                stroke-width="6" 
+                stroke-linecap="round" 
+                fill="none" 
+                class="route-line-anim"
+                [class.active]="selectedOrder.estado === 'En camino'"
+              />
+              
+              <!-- Marcadores -->
+              <circle cx="40" cy="40" r="8" fill="#10b981" />
+              <text x="35" y="25" font-size="8" font-weight="700" fill="#0f172a">Origen</text>
+              
+              <circle cx="280" cy="60" r="8" fill="#ef4444" />
+              <text x="260" y="50" font-size="8" font-weight="700" fill="#0f172a">Cliente</text>
+              
+              <!-- Vehículo móvil emulado -->
+              <g 
+                class="car-marker-anim" 
+                [class.moving]="selectedOrder.estado === 'En camino'"
+                [class.arrived]="timelineSteps[3].completed"
+              >
+                <circle cx="0" cy="0" r="10" fill="#0f766e" stroke="#ffffff" stroke-width="2" />
+                <path d="M -5 -3 L 5 -3 L 5 3 L -5 3 Z" fill="#ffffff" />
+              </g>
+            </svg>
+            
+            <div class="map-overlay">
+              <span class="pulsar-dot" [class.active]="selectedOrder.estado === 'En camino'"></span>
+              <span>Ubicación actual: <strong>{{ selectedOrder.estado === 'En camino' ? 'Av. Javier Prado c/ Arequipa' : selectedOrder.estado === 'Entregado' ? 'Destino finalizado' : 'Centro de Distribución' }}</strong></span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Cold Chain Monitoring -->
+        <div class="temperature-card card-panel">
+          <div class="card-head">
+            <div>
+              <p class="panel-label">Cadena de Frío Activa</p>
+              <h3>Termosensor Inteligente</h3>
+            </div>
+            <ion-badge color="success" *ngIf="!tempAlert">Estable</ion-badge>
+            <ion-badge color="danger" *ngIf="tempAlert">¡ALERTA TÉRMICA!</ion-badge>
+          </div>
+          
+          <div class="temp-readouts">
+            <div class="temp-gauge">
+              <ion-icon name="thermometer-outline" class="therm-icon" [class.alert]="tempAlert"></ion-icon>
+              <div class="current-val">
+                <h2>{{ tempCurrent }}°C</h2>
+                <span class="label">Temperatura Real</span>
+              </div>
+            </div>
+            
+            <div class="temp-stats">
+              <div class="stat-box">
+                <span class="title">MIN</span>
+                <strong>{{ tempMin }}°C</strong>
+              </div>
+              <div class="stat-box">
+                <span class="title">PROMEDIO</span>
+                <strong>{{ tempAvg }}°C</strong>
+              </div>
+              <div class="stat-box">
+                <span class="title">MAX</span>
+                <strong>{{ tempMax }}°C</strong>
+              </div>
+            </div>
+          </div>
+          
+          <div class="alert-box warning-alert" *ngIf="tempAlert">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span>Desviación térmica detectada: Temperatura superó el límite de seguridad (6°C).</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Panel: Visual Timeline & Hitos -->
+      <div class="right-col">
+        
+        <!-- Timeline Card -->
+        <div class="timeline-card card-panel">
+          <div class="card-head">
+            <p class="panel-label">Fases del Servicio</p>
+            <span class="step-count">
+              {{ timelineSteps.length > 0 ? (selectedOrder.estado === 'Entregado' ? '5/5' : 'Activo') : '0/5' }}
+            </span>
+          </div>
+          
+          <div class="timeline-list">
+            <div 
+              class="timeline-step anim-fade-up" 
+              *ngFor="let step of timelineSteps; let i = index"
+              [class.completed]="step.completed"
+              [class.active]="step.active"
+              [ngStyle]="{'animation-delay': (i * 0.08) + 's'}"
+            >
+              <div class="step-marker" [class.completed]="step.completed" [class.active]="step.active">
+                <ion-icon [name]="step.completed ? 'checkmark-outline' : 'play-outline'"></ion-icon>
+              </div>
+              <div class="step-content">
+                <div class="title-row">
+                  <h4>{{ step.title }}</h4>
+                  <span class="time" *ngIf="step.timestamp">{{ step.timestamp }}</span>
+                </div>
+                <p>{{ step.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="signatureDataUrl">
+          <h3>Firma de entrega</h3>
+          <div class="signature-preview">
+            <img [src]="signatureDataUrl" alt="Firma" />
+            <p class="small muted">Firma guardada en el dispositivo (mock)</p>
+          </div>
+        </div>
+
+        <!-- Action / Panel de control del Transportista -->
+        <div class="actions-card card-panel" *ngIf="isTransportista">
+          <div class="card-head">
+            <p class="panel-label">Panel del Conductor</p>
+            <h3>Acciones de Operación</h3>
+          </div>
+          
+          <div class="action-buttons">
+            <!-- Iniciar / Avanzar etapas -->
+            <ion-button 
+              expand="block" 
+              fill="solid" 
+              color="primary"
+              (click)="advanceStep()" 
+              [disabled]="selectedOrder.estado === 'Entregado' || timelineSteps[3].completed"
+            >
+              <ion-icon slot="start" name="play-outline"></ion-icon>
+              {{ selectedOrder.estado === 'Pendiente' ? 'Iniciar Preparación' : 
+                 selectedOrder.estado === 'En preparación' ? 'Iniciar Ruta de Envío' : 'Registrar Llegada al Punto' }}
+            </ion-button>
+            
+            <!-- Completar con firma -->
+            <ion-button 
+              expand="block" 
+              fill="outline" 
+              color="success"
+              (click)="openSignature()" 
+              [disabled]="selectedOrder.estado === 'Entregado' || !timelineSteps[3].completed"
+            >
+              <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+              Registrar Entrega con Firma
+            </ion-button>
+            
+            <!-- Reportar Incidencia -->
+            <ion-button 
+              expand="block" 
+              fill="clear" 
+              color="danger" 
+              (click)="openIncident()"
+              [disabled]="selectedOrder.estado === 'Entregado'"
+            >
+              <ion-icon slot="start" name="warning-outline"></ion-icon>
+              Reportar Incidencia
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Info del Conductor para el Supervisor/Cliente -->
+        <div class="transport-card card-panel" *ngIf="!isTransportista">
+          <div class="card-head">
+            <p class="panel-label">Asignación Logística</p>
+            <ion-badge color="success">Asignado</ion-badge>
+          </div>
+          <div class="transport-info">
+            <div class="avatar">
+              {{ selectedOrder.transportista?.substring(0, 2) | uppercase }}
+            </div>
+            <div class="info-content">
+              <h4>{{ selectedOrder.transportista }}</h4>
+              <p class="subtext"><ion-icon name="car-outline"></ion-icon> Furgoneta Refrigerada F-350 (Placa: M-9092)</p>
+              <p class="subtext"><ion-icon name="person-outline"></ion-icon> Operador Certificado de Frío</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE FIRMA DIGITAL -->
+  <ion-modal [isOpen]="showSignatureModal" [backdropDismiss]="true" (didDismiss)="showSignatureModal = false; removeCanvasListeners()" class="premium-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Firma Digital de Conformidad</ion-title>
+          <ion-button slot="end" fill="clear" (click)="showSignatureModal = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      
+      <div class="modal-body ion-padding text-center">
+        <p class="subtitle-label">POR FAVOR, REGISTRE EL NOMBRE DE QUIEN RECIBE</p>
+        
+        <ion-item class="premium-input-item">
+          <ion-input 
+            placeholder="Ej. Dr. Alejandro Delgado" 
+            [(ngModel)]="signatureName" 
+            label="Nombre del Receptor"
+            labelPlacement="floating"
+          ></ion-input>
+        </ion-item>
+        
+        <div class="canvas-mock">
+          <div class="canvas-instructions">
+            <ion-icon name="pencil-outline"></ion-icon>
+            <p>Firma (dibuje con el dedo o mouse)</p>
+          </div>
+          <div class="canvas-area">
+            <canvas #signatureCanvas class="signature-canvas" aria-label="Área de firma"></canvas>
+          </div>
+          <div class="canvas-controls">
+            <ion-button size="small" fill="outline" color="medium" (click)="clearCanvas()">Limpiar</ion-button>
+            <ion-button size="small" fill="solid" color="success" (click)="confirmSignature()">Confirmar</ion-button>
+          </div>
+          <!-- Fallback visual si canvas no es soportado o no se dibuja -->
+          <div *ngIf="!canvasSupported || signatureName.length > 3" class="canvas-fallback">
+            <svg class="signed-stroke" viewBox="0 0 200 80">
+              <path d="M 20 50 Q 50 20 80 50 T 140 30 T 180 50" stroke="#0f766e" stroke-width="3" fill="none" stroke-linecap="round" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MODAL DE REGISTRO DE INCIDENCIAS -->
+  <ion-modal [isOpen]="showIncidentModal" [backdropDismiss]="true" (didDismiss)="showIncidentModal = false" class="premium-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Reportar Incidencia Crítica</ion-title>
+          <ion-button slot="end" fill="clear" (click)="showIncidentModal = false">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      
+      <div class="modal-body ion-padding">
+        <p class="subtitle-label">SELECCIONE EL TIPO DE PROBLEMA E INGRESE EL DETALLE</p>
+        
+        <ion-item class="premium-input-item select-item">
+          <ion-label>Tipo</ion-label>
+          <ion-select [(ngModel)]="incidentType" interface="popover">
+            <ion-select-option value="demora">Demora</ion-select-option>
+            <ion-select-option value="temp_fuera">Temperatura fuera de rango</ion-select-option>
+            <ion-select-option value="cliente_ausente">Cliente ausente</ion-select-option>
+            <ion-select-option value="direccion_incorrecta">Dirección incorrecta</ion-select-option>
+            <ion-select-option value="producto_danado">Producto dañado</ion-select-option>
+            <ion-select-option value="otro">Otro</ion-select-option>
+          </ion-select>
+        </ion-item>
+        
+        <ion-item class="premium-input-item textarea-item">
+          <ion-textarea 
+            rows="4" 
+            placeholder="Describa la situación ocurrida para notificar al supervisor en tiempo real..."
+            [(ngModel)]="incidentDescription"
+            label="Comentarios del Operador"
+            labelPlacement="floating"
+          ></ion-textarea>
+        </ion-item>
+        
+        <div class="modal-actions">
+          <ion-button expand="block" color="danger" (click)="submitIncident()">
+            <ion-icon slot="start" name="save-outline"></ion-icon>
+            Enviar Reporte Crítico
+          </ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Toast Feedback -->
+  <ion-toast
+    [isOpen]="toastOpen"
+    [message]="toastMessage"
+    duration="2200"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

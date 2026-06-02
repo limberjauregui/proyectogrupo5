@@ -1,0 +1,227 @@
+<ion-content class="transportistas-content">
+  <div class="transportistas-wrapper">
+
+    <!-- Header Principal -->
+    <div class="page-header">
+      <div class="header-content">
+        <span class="header-badge">FLOTA</span>
+        <h1 class="header-title">Gestión de transportistas</h1>
+      </div>
+      <ion-button class="btn-solid-teal" (click)="openCreateModal()">
+        <ion-icon name="add-outline" slot="start"></ion-icon>
+        Añadir
+      </ion-button>
+    </div>
+
+    <!-- KPI Cards - Compact Row -->
+    <div class="kpi-container">
+      <div class="kpi-card">
+        <div class="kpi-icon total-icon">
+          <ion-icon name="car-outline"></ion-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ totalFlota }}</span>
+          <span class="kpi-label">Total flota</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon success-icon">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ disponibles }}</span>
+          <span class="kpi-label">Disponibles</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon warning-icon">
+          <ion-icon name="navigate-outline"></ion-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ enRuta }}</span>
+          <span class="kpi-label">En ruta</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon rating-icon">
+          <ion-icon name="star-outline"></ion-icon>
+        </div>
+        <div class="kpi-info">
+          <span class="kpi-value">{{ avgRating }}</span>
+          <span class="kpi-label">Rating prom.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="search-filter-section">
+      <div class="search-box">
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre, vehículo o teléfono..."
+          class="search-input"
+          [(ngModel)]="search"
+        />
+      </div>
+      
+      <div class="filter-row">
+        <button 
+          class="filter-chip"
+          *ngFor="let f of filters"
+          [class.filter-active]="activeFilter === f"
+          (click)="setFilter(f)"
+        >
+          {{ f }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Driver Cards List -->
+    <div class="drivers-grid">
+      <div class="driver-card" *ngFor="let t of filteredTransportistas">
+        
+        <!-- Card Header: Avatar + Name + Status -->
+        <div class="card-header-row">
+          <div class="driver-avatar" [style.background]="t.avatarColor">
+            {{ t.initials }}
+          </div>
+          <div class="driver-info-col">
+            <h3 class="driver-name">{{ t.name }}</h3>
+            <div class="badges-row">
+              <span class="status-pill" [ngClass]="getStatusClass(t.status)">
+                {{ t.status }}
+              </span>
+              <span class="special-badge" *ngIf="t.tempControlled">
+                <ion-icon name="snow-outline"></ion-icon>
+                Frío
+              </span>
+            </div>
+          </div>
+          <div class="actions-col">
+            <button class="edit-btn" (click)="openEditModal(t)">
+              <ion-icon name="create-outline"></ion-icon>
+            </button>
+            <button class="edit-btn" style="color: #ef4444;" (click)="deleteTransportista(t.id)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Info Row -->
+        <div class="info-row">
+          <div class="info-item">
+            <ion-icon name="car-outline" class="info-icon"></ion-icon>
+            <span>{{ t.vehicleModel }} – {{ t.plate }}</span>
+          </div>
+          <div class="info-item">
+            <ion-icon name="call-outline" class="info-icon"></ion-icon>
+            <span>{{ t.phone }}</span>
+          </div>
+        </div>
+
+        <!-- Second Info Row -->
+        <div class="info-row">
+          <div class="info-item">
+            <ion-icon name="location-outline" class="info-icon"></ion-icon>
+            <span>{{ t.zone }}</span>
+          </div>
+          <div class="info-item">
+            <ion-icon name="mail-outline" class="info-icon"></ion-icon>
+            <span>{{ t.email }}</span>
+          </div>
+        </div>
+
+        <!-- Rating & GPS Row -->
+        <div class="rating-gps-row">
+          <div class="rating-col">
+            <div class="stars-display">
+              <span class="star-icon" *ngFor="let s of stars(t.rating)">★</span>
+              <span class="rating-value">{{ t.rating }}</span>
+            </div>
+          </div>
+          <div class="gps-col" [class.active]="t.status === 'En ruta'">
+            <ion-icon name="navigate-outline"></ion-icon>
+            <span>{{ t.gps }}</span>
+          </div>
+          <span class="update-badge">{{ t.lastUpdate }}</span>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-value">{{ t.deliveries }}</span>
+            <span class="stat-name">Entregas</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ t.onTime }}</span>
+            <span class="stat-name">A tiempo</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value" [class.warning]="t.incidents > 3">{{ t.incidents }}</span>
+            <span class="stat-name">Incidencias</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <ion-modal [isOpen]="showModal" (didDismiss)="closeModal()" class="transportista-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ isEditing ? 'Editar Transportista' : 'Nuevo Transportista' }}</ion-title>
+          <ion-button slot="end" fill="clear" (click)="closeModal()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="form-container" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #475569;">Nombre Completo</label>
+            <ion-input [(ngModel)]="form.name" placeholder="Ej: Juan Pérez" style="--background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; --padding-start: 1rem;"></ion-input>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #475569;">Vehículo</label>
+              <ion-input [(ngModel)]="form.vehicleModel" placeholder="Ej: Moto Honda" style="--background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; --padding-start: 1rem;"></ion-input>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #475569;">Placa</label>
+              <ion-input [(ngModel)]="form.plate" placeholder="Ej: ABC-123" style="--background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; --padding-start: 1rem;"></ion-input>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #475569;">Teléfono</label>
+              <ion-input [(ngModel)]="form.phone" placeholder="+51..." style="--background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; --padding-start: 1rem;"></ion-input>
+            </div>
+            <div>
+              <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #475569;">Zona</label>
+              <ion-input [(ngModel)]="form.zone" placeholder="Ej: Zona Norte" style="--background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; --padding-start: 1rem;"></ion-input>
+            </div>
+          </div>
+          <div>
+            <label style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: #475569;">Estado</label>
+            <ion-select [(ngModel)]="form.status" style="--background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; --padding-start: 1rem;">
+              <ion-select-option value="Disponible">Disponible</ion-select-option>
+              <ion-select-option value="En ruta">En ruta</ion-select-option>
+              <ion-select-option value="Descanso">Descanso</ion-select-option>
+              <ion-select-option value="Inactivo">Inactivo</ion-select-option>
+            </ion-select>
+          </div>
+          <ion-button expand="block" (click)="saveTransportista()" style="--background: #14b8a6; --border-radius: 8px; margin-top: 1rem;">
+            Guardar
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

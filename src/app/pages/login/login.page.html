@@ -1,0 +1,129 @@
+<ion-header class="login-header" [translucent]="true">
+  <ion-toolbar class="login-toolbar">
+    <!-- Empty toolbar for spacing only -->
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="login-page-premium">
+  <div class="login-container-premium">
+    <!-- BRAND HERO SECTION -->
+    <div class="login-hero">
+      <!-- Hero Background Gradient -->
+      <div class="hero-gradient"></div>
+
+      <!-- Hero Icon -->
+      <div class="hero-icon">
+        <!-- Reintroducimos un logo SVG inline como respaldo para que no dependa de assets externos -->
+        <img class="hero-logo" alt="Logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none'><rect rx='6' width='24' height='24' fill='%2302aab0'/><path d='M7.5 12.5l2.5 2.5 6.5-7' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+        <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>
+      </div>
+
+      <!-- Company Title -->
+      <h1 class="company-title-premium">IMPORT SUPPLIES<br />PROTECTION</h1>
+      <p class="company-subtitle-premium">Sistema Médico de Logística Segura</p>
+    </div>
+
+    <!-- LOGIN FORM CARD -->
+    <div class="login-card-premium">
+      <!-- Form Header -->
+      <div class="form-header-premium">
+        <h2>Acceder al Sistema</h2>
+        <p class="form-description">Ingrese sus credenciales para continuar</p>
+      </div>
+
+      <!-- Form Body -->
+      <form class="form-body-premium" (ngSubmit)="login()">
+        <!-- Username Field -->
+        <div class="form-group-premium">
+          <label class="form-label">Usuario o Email</label>
+          <div class="form-input-wrapper">
+            <ion-icon name="person-outline" class="form-icon"></ion-icon>
+            <input 
+              type="text" 
+              [(ngModel)]="username" 
+              name="username"
+              placeholder="ej. supervisor@isp.com"
+              class="form-input-premium"
+              autocomplete="username"
+            />
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group-premium">
+          <label class="form-label">Contraseña</label>
+          <div class="form-input-wrapper">
+            <ion-icon name="lock-closed-outline" class="form-icon"></ion-icon>
+            <input 
+              type="password" 
+              [(ngModel)]="password" 
+              name="password"
+              placeholder="••••••••"
+              class="form-input-premium"
+              autocomplete="current-password"
+            />
+          </div>
+        </div>
+
+        <!-- Error Alert -->
+        <div class="alert-error-premium" *ngIf="errorMessage">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Login Button -->
+        <button 
+          type="submit" 
+          class="btn-login-premium"
+          [disabled]="!username || !password"
+        >
+          <span>Ingresar</span>
+          <ion-icon name="arrow-forward-outline"></ion-icon>
+        </button>
+      </form>
+
+      <!-- Divider OR -->
+      <div class="divider-or-premium" *ngIf="!environment.production">
+        <span>Acceso Rápido para Demo</span>
+      </div>
+
+      <!-- Quick Login Pills -->
+      <div class="quick-login-pills" *ngIf="!environment.production">
+        <button 
+          type="button"
+          class="pill-button pill-supervisor"
+          (click)="quickLogin('supervisor')"
+          title="Acceso rápido: Supervisor"
+        >
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>Supervisor</span>
+        </button>
+
+        <button 
+          type="button"
+          class="pill-button pill-transportista"
+          (click)="quickLogin('transportista')"
+          title="Acceso rápido: Transportista"
+        >
+          <ion-icon name="car-outline"></ion-icon>
+          <span>Transportista</span>
+        </button>
+
+        <button 
+          type="button"
+          class="pill-button pill-cliente"
+          (click)="quickLogin('cliente')"
+          title="Acceso rápido: Cliente"
+        >
+          <ion-icon name="bag-outline"></ion-icon>
+          <span>Cliente</span>
+        </button>
+      </div>
+
+      <!-- Footer Note -->
+      <p class="footer-note-premium">
+        Sistema seguro. Todos los datos están encriptados.
+      </p>
+    </div>
+  </div>
+</ion-content>

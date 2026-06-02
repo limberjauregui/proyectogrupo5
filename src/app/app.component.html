@@ -1,3 +1,42 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-header *ngIf="authService.isAuthenticated" class="app-header ion-no-border">
+    <ion-toolbar class="app-toolbar">
+      <div class="header-content">
+        <div class="header-titles">
+          <span class="subtitle">MEDLOG · VITALFLOW LOGISTICS</span>
+          <ion-title class="app-title">{{ getPageTitle() }}</ion-title>
+        </div>
+        <div class="header-actions">
+          <ion-button fill="clear" class="icon-button round-btn" (click)="toggleTheme()">
+            <ion-icon [name]="isDarkMode ? 'sunny-outline' : 'moon-outline'"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" class="icon-button round-btn">
+            <ion-icon name="notifications-outline"></ion-icon>
+          </ion-button>
+          <ion-button class="logout-button" (click)="logout()">
+            <ion-icon name="log-out-outline" slot="start"></ion-icon>
+            Salir
+          </ion-button>
+        </div>
+      </div>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="router-container" [class.authenticated-content]="authService.isAuthenticated">
+    <ion-router-outlet></ion-router-outlet>
+  </div>
+
+  <ion-tab-bar *ngIf="authService.isAuthenticated" class="app-tab-bar" slot="bottom">
+    <ion-tab-button
+      *ngFor="let item of navItems"
+      [routerLink]="item.path"
+      [class.ion-selected]="selectedTab === item.path"
+      class="tab-button"
+    >
+      <ion-icon [name]="item.icon"></ion-icon>
+      <span class="tab-label">{{ item.label }}</span>
+    </ion-tab-button>
+  </ion-tab-bar>
+
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="2000" (didDismiss)="toastOpen = false"></ion-toast>
 </ion-app>

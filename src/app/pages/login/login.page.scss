@@ -1,0 +1,526 @@
+/**
+ * LOGIN PAGE - MEDICAL ENTERPRISE PREMIUM DESIGN
+ * ============================================================================
+ * Hero section + form card with modern interactions and dark mode support
+ */
+
+.login-header {
+  --background: transparent;
+  --ion-toolbar-background: transparent;
+}
+
+.login-toolbar {
+  --background: transparent;
+}
+
+.login-page-premium {
+  --background: var(--surface-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 2rem 1rem;
+  
+  @media (prefers-color-scheme: dark) {
+    --background: var(--surface-secondary);
+  }
+}
+
+.login-container-premium {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fadeInUp 600ms ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   HERO SECTION
+   ============================================================================ */
+.login-hero {
+  position: relative;
+  text-align: center;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--surface-primary);
+  padding: 3rem 2rem 2rem;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+
+  .hero-gradient {
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    opacity: 0.08;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(20px);
+    }
+  }
+}
+
+.hero-icon {
+  position: relative;
+  z-index: 1;
+  width: 80px;
+  height: 80px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 12px 24px rgba(14, 165, 233, 0.25);
+  animation: slideInDown 600ms ease-out;
+
+  /* Logo image fallback */
+  .hero-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    display: block;
+    border-radius: 12px;
+    box-shadow: 0 8px 18px rgba(2, 170, 176, 0.18);
+  }
+
+  ion-icon {
+    font-size: 2.4rem;
+    color: #ffffff;
+  }
+
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+.company-title-premium {
+  position: relative;
+  z-index: 1;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  text-align: center;
+
+  br {
+    display: none;
+    @media (max-width: 480px) {
+      display: block;
+    }
+  }
+}
+
+.company-subtitle-premium {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================================
+   LOGIN FORM CARD
+   ============================================================================ */
+.login-card-premium {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: slideInUp 600ms ease-out 100ms both;
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+.form-header-premium {
+  padding: 2rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-light);
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .form-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+}
+
+.form-body-premium {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group-premium {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  animation: fadeIn 400ms ease-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  &:nth-child(1) {
+    animation-delay: 100ms;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 150ms;
+  }
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.form-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface-tertiary);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+
+  &:focus-within {
+    border-color: var(--color-primary);
+    background: var(--surface-primary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+  }
+
+  .form-icon {
+    position: absolute;
+    left: 1rem;
+    font-size: 18px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+    transition: color var(--transition-base);
+  }
+
+  &:focus-within .form-icon {
+    color: var(--color-primary);
+  }
+}
+
+.form-input-premium {
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  padding: 0.85rem 1rem 0.85rem 2.8rem;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  width: 100%;
+
+  &::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  &:autofill {
+    -webkit-text-fill-color: var(--text-primary);
+    -webkit-box-shadow: inset 0 0 0 1000px var(--surface-tertiary);
+  }
+}
+
+/* ERROR ALERT */
+.alert-error-premium {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: #991b1b;
+  animation: shake 400ms ease-in-out;
+
+  ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
+  }
+}
+
+/* LOGIN BUTTON */
+.btn-login-premium {
+  width: 100%;
+  background: var(--gradient-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.95rem 1.5rem;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-family: var(--font-family);
+
+  ion-icon {
+    font-size: 18px;
+    transition: transform var(--transition-base);
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(14, 165, 233, 0.4);
+
+    ion-icon {
+      transform: translateX(4px);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* DIVIDER OR */
+.divider-or-premium {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+  }
+}
+
+/* QUICK LOGIN PILLS */
+.quick-login-pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.pill-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--surface-tertiary);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 24px;
+    transition: transform var(--transition-base);
+    /* For better visibility over light backgrounds */
+    color: var(--color-primary);
+  }
+
+  &:hover {
+    border-color: var(--color-primary);
+    background: rgba(14, 165, 233, 0.08);
+
+    ion-icon {
+      transform: scale(1.15);
+    }
+  }
+
+  &:active {
+    background: rgba(14, 165, 233, 0.15);
+  }
+
+  // Role-specific colors
+  &.pill-supervisor {
+    --pill-color: #7C3AED;
+    ion-icon { color: #7C3AED; }
+  }
+
+  &.pill-transportista {
+    --pill-color: #0284C7;
+    ion-icon { color: #0284C7; }
+  }
+
+  &.pill-cliente {
+    --pill-color: #DC2626;
+    ion-icon { color: #DC2626; }
+  }
+
+  &.pill-supervisor:hover {
+    border-color: #7C3AED;
+    background: rgba(124, 58, 237, 0.08);
+  }
+
+  &.pill-transportista:hover {
+    border-color: #0284C7;
+    background: rgba(2, 132, 199, 0.08);
+  }
+
+  &.pill-cliente:hover {
+    border-color: #DC2626;
+    background: rgba(220, 38, 38, 0.08);
+  }
+}
+
+/* FOOTER NOTE */
+.footer-note-premium {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin: 0.5rem 0 0 0;
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 640px) {
+  .login-container-premium {
+    gap: 1.5rem;
+  }
+
+  .login-hero {
+    padding: 2rem 1.5rem 1.5rem;
+    min-height: 240px;
+  }
+
+  .company-title-premium {
+    font-size: 28px;
+  }
+
+  .form-header-premium {
+    padding: 1.5rem;
+
+    h2 {
+      font-size: 20px;
+    }
+
+    .form-description {
+      font-size: 13px;
+    }
+  }
+
+  .form-body-premium {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .quick-login-pills {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .pill-button {
+    padding: 0.85rem;
+    font-size: 11px;
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}

@@ -1,0 +1,265 @@
+<ion-content class="ion-padding dashboard-content">
+  <div class="dashboard-wrapper">
+    <div class="welcome-card">
+      <div class="welcome-info">
+        <span class="panel-label">PANEL V2.0</span>
+        <h2>¡Hola, {{ authService.username || 'Usuario' }}!</h2>
+        <p>Resumen completo de la cadena de frío, inventario y entregas.</p>
+      </div>
+
+      <div class="welcome-actions">
+        <ion-button fill="clear" class="btn-icon round" (click)="refreshData()" [disabled]="isRefreshing">
+          <ion-icon name="refresh-outline" [class.spin]="isRefreshing"></ion-icon>
+        </ion-button>
+
+        <ion-button class="btn-calendar" (click)="openControlDiario()">
+          <ion-icon name="calendar-outline" slot="start"></ion-icon>
+          Control Diario
+        </ion-button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card anim-fade-up" *ngFor="let kpi of kpis; let i = index"
+           [class.anim-delay-1]="i === 0"
+           [class.anim-delay-2]="i === 1"
+           [class.anim-delay-3]="i === 2"
+           [class.anim-delay-4]="i === 3">
+        <div class="kpi-header">
+          <span class="kpi-title">{{ kpi.label }}</span>
+
+          <div class="kpi-icon-wrapper teal">
+            <ion-icon
+              [name]="
+                i === 0 ? 'car-outline' :
+                i === 1 ? 'checkmark-circle-outline' :
+                i === 2 ? 'warning-outline' :
+                'shield-checkmark-outline'
+              "
+            ></ion-icon>
+          </div>
+        </div>
+
+        <div class="kpi-value">{{ kpi.value }}</div>
+        <div class="kpi-footer">{{ kpi.detail }}</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="left-col">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title-group">
+              <span class="chart-subtitle">TENDENCIAS DEL STOCK</span>
+              <h3>Pedidos vs Inventario</h3>
+            </div>
+
+            <div class="chart-filters">
+              <span class="filter" [class.active]="activeRange === '7D'" (click)="setRange('7D')">7D</span>
+              <span class="filter" [class.active]="activeRange === '30D'" (click)="setRange('30D')">30D</span>
+              <span class="filter" [class.active]="activeRange === '90D'" (click)="setRange('90D')">90D</span>
+            </div>
+          </div>
+
+          <div class="chart-body">
+            <svg viewBox="0 0 500 200" class="mock-chart">
+              <defs>
+                <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#12b3a8" stop-opacity="0.2" />
+                  <stop offset="100%" stop-color="#12b3a8" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+
+              <line x1="40" y1="20" x2="500" y2="20" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4" />
+              <line x1="40" y1="70" x2="500" y2="70" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4" />
+              <line x1="40" y1="120" x2="500" y2="120" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="4" />
+              <line x1="40" y1="170" x2="500" y2="170" stroke="#e2e8f0" stroke-width="1" />
+
+              <text x="30" y="24" font-size="10" fill="#94a3b8" text-anchor="end">100</text>
+              <text x="30" y="74" font-size="10" fill="#94a3b8" text-anchor="end">75</text>
+              <text x="30" y="124" font-size="10" fill="#94a3b8" text-anchor="end">50</text>
+              <text x="30" y="174" font-size="10" fill="#94a3b8" text-anchor="end">0</text>
+
+              <text x="50" y="190" font-size="10" fill="#94a3b8">Lun</text>
+              <text x="120" y="190" font-size="10" fill="#94a3b8">Mar</text>
+              <text x="190" y="190" font-size="10" fill="#94a3b8">Mié</text>
+              <text x="260" y="190" font-size="10" fill="#94a3b8">Jue</text>
+              <text x="330" y="190" font-size="10" fill="#94a3b8">Vie</text>
+              <text x="400" y="190" font-size="10" fill="#94a3b8">Sáb</text>
+              <text x="470" y="190" font-size="10" fill="#94a3b8">Dom</text>
+
+              <path [attr.d]="chartPath" fill="none" stroke="#12b3a8" stroke-width="3"></path>
+              <path [attr.d]="chartAreaPath" fill="url(#chartGradient)"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="info-card cold-chain-card">
+          <div class="card-title-row">
+            <ion-icon name="thermometer-outline" class="teal-icon"></ion-icon>
+            <h4>Cadena de Frío Activa</h4>
+          </div>
+
+          <p class="card-desc">Métricas térmicas recolectadas hoy</p>
+
+          <div class="temp-metrics">
+            <div class="metric">
+              <span class="metric-label">MIN</span>
+              <span class="metric-val min">2.5°C</span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-label">PROMEDIO</span>
+              <span class="metric-val avg">4.6°C</span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-label">MAX</span>
+              <span class="metric-val max">7.2°C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card deliveries-card">
+          <div class="card-title-row">
+            <ion-icon name="time-outline" class="teal-icon"></ion-icon>
+            <h4>Próximas Entregas Urgentes</h4>
+          </div>
+
+          <div class="delivery-list" *ngIf="upcomingDeliveries.length > 0; else noDeliveries">
+            <div class="delivery-item" *ngFor="let delivery of upcomingDeliveries">
+              <div class="delivery-info">
+                <span class="delivery-id">{{ delivery.id }}</span>
+                <span class="delivery-name">{{ delivery.address }}</span>
+              </div>
+
+              <div class="delivery-eta">
+                <span class="eta-label">ETA:</span>
+                <span class="eta-time">{{ delivery.eta }}</span>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noDeliveries>
+            <div class="empty-state-card">
+              <p>No hay entregas urgentes pendientes</p>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ion-modal
+    [isOpen]="showControlDiarioModal"
+    [backdropDismiss]="true"
+    (didDismiss)="closeControlDiario()"
+    class="control-modal"
+  >
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Control Diario</ion-title>
+
+          <ion-button slot="end" fill="clear" (click)="closeControlDiario()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <div class="control-section">
+          <h3>Entregas del día</h3>
+
+          <div class="control-list">
+            <div class="control-item" *ngFor="let delivery of dailyDeliveries">
+              <div>
+                <strong>{{ delivery.id }}</strong>
+                <p>{{ delivery.address }}</p>
+              </div>
+
+              <span class="status-pill">{{ delivery.status }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>Alertas críticas</h3>
+
+          <div class="control-list">
+            <div class="control-item" *ngFor="let alert of criticalAlerts">
+              <div>
+                <strong>{{ alert.type }}</strong>
+                <p>{{ alert.message }}</p>
+              </div>
+
+              <span>{{ alert.date | date:'HH:mm' }}</span>
+            </div>
+
+            <div class="empty-state" *ngIf="criticalAlerts.length === 0">
+              <p>Sin alertas críticas nuevas.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section">
+          <h3>Productos bajo stock</h3>
+
+          <div class="control-list">
+            <div class="control-item" *ngFor="let product of lowStockProducts">
+              <div>
+                <strong>{{ product.name }}</strong>
+                <p>{{ product.code }} · {{ product.category }}</p>
+              </div>
+
+              <span>{{ product.stock }} uds</span>
+            </div>
+
+            <div class="empty-state" *ngIf="lowStockProducts.length === 0">
+              <p>Todo el stock está en niveles seguros.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-section summary-card">
+          <h3>Resumen Cadena de Frío</h3>
+
+          <div class="summary-grid">
+            <div>
+              <p>Temperatura mínima</p>
+              <strong>{{ coldChainSummary.min }}°C</strong>
+            </div>
+
+            <div>
+              <p>Temperatura promedio</p>
+              <strong>{{ coldChainSummary.avg }}°C</strong>
+            </div>
+
+            <div>
+              <p>Temperatura máxima</p>
+              <strong>{{ coldChainSummary.max }}°C</strong>
+            </div>
+
+            <div>
+              <p>Estado</p>
+              <strong>{{ coldChainSummary.status }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <ion-button expand="block" fill="solid" color="primary" (click)="closeControlDiario()">
+          Cerrar
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-toast
+    [isOpen]="toastOpen"
+    [message]="toastMessage"
+    duration="1800"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

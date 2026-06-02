@@ -1,0 +1,244 @@
+.solicitudes-page {
+  min-height: 100%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+  .search-section {
+    background: white;
+    padding: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+
+    .custom-searchbar {
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+
+      @media (max-width: 600px) {
+        flex-direction: column;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 150px;
+
+        label {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #64748b;
+          text-transform: uppercase;
+        }
+
+        .state-select {
+          --padding-start: 0.75rem;
+          --padding-end: 0.75rem;
+          --min-height: 2.25rem;
+          border-radius: 6px;
+          background: #f8fafc;
+        }
+      }
+    }
+  }
+
+  .solicitudes-container {
+    min-height: calc(100% - 120px);
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0));
+
+    @media (max-width: 600px) {
+      padding: 0.75rem;
+    }
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+
+    .empty-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    h3 {
+      color: #1e293b;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 0.5rem 0;
+    }
+
+    p {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+  }
+
+  .solicitud-item {
+    margin-bottom: 1rem;
+    
+    @media (max-width: 600px) {
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  .solicitud-card {
+    display: flex;
+    flex-direction: column;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: white;
+
+    &:hover {
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.25rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+
+      .header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .codigo {
+          font-size: 1.1rem;
+          font-weight: 700;
+        }
+
+        .fecha {
+          font-size: 0.8rem;
+          opacity: 0.9;
+        }
+      }
+
+      .header-right {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+
+        ion-badge {
+          --padding-start: 0.75rem;
+          --padding-end: 0.75rem;
+          --padding-top: 0.4rem;
+          --padding-bottom: 0.4rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .card-body {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e2e8f0;
+
+      .items-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+
+        .item-count {
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #64748b;
+        }
+
+        .product-preview {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+          align-items: center;
+
+          .product-tag {
+            display: inline-block;
+            padding: 0.35rem 0.65rem;
+            background: #dbeafe;
+            color: #0369a1;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .product-more {
+            display: inline-block;
+            padding: 0.35rem 0.65rem;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+
+    .card-footer {
+      padding: 1rem 1.25rem;
+      background: #f8fafc;
+      display: flex;
+      justify-content: flex-end;
+
+      .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: flex-end;
+
+        ion-button {
+          --padding-start: 1rem;
+          --padding-end: 1rem;
+          --min-height: 2.25rem;
+          flex: 1;
+          min-width: 120px;
+          font-weight: 600;
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  .meta {
+    display: flex;
+    gap: 1rem;
+    color: #61748b;
+    font-weight: 600;
+  }
+
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .controls ion-item {
+    margin-bottom: 0.8rem;
+  }
+}

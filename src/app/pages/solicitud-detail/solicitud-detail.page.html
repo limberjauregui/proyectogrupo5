@@ -1,0 +1,167 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Detalle de solicitud</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding solicitud-detail-page">
+  <ion-card *ngIf="solicitud" class="solicitud-card">
+    <!-- HEADER: Código y estado -->
+    <ion-card-header class="card-header-destacado">
+      <div class="header-top">
+        <ion-card-title class="codigo">{{ solicitud.code }}</ion-card-title>
+        <ion-badge [color]="getStateColor(solicitud.estado)">{{ solicitud.estado }}</ion-badge>
+      </div>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- INFO BÁSICA -->
+      <div class="info-section">
+        <div class="info-item">
+          <span class="label">Cliente:</span>
+          <span class="value">{{ solicitud.clienteId }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Fecha:</span>
+          <span class="value">{{ solicitud.fecha | date:'short' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Total de ítems:</span>
+          <span class="value">{{ solicitud.totalItems }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Orden vinculada:</span>
+          <span class="value" *ngIf="linkedOrder">{{ linkedOrder.code }}</span>
+          <span class="value" *ngIf="!linkedOrder">Sin orden vinculada</span>
+        </div>
+        <div class="info-item" *ngIf="linkedOrder">
+          <span class="label">Transportista:</span>
+          <span class="value">{{ getTransportistaName() }}</span>
+        </div>
+        <div class="info-item" *ngIf="linkedOrder?.fechaEntrega">
+          <span class="label">ETA:</span>
+          <span class="value">{{ getOrderEta() }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Observaciones:</span>
+          <span class="value">Sin observaciones adicionales</span>
+        </div>
+      </div>
+
+      <!-- PRODUCTOS CON DETALLES -->
+      <div class="section">
+        <h4>Productos solicitados</h4>
+        <div *ngFor="let item of productDetails" class="product-card">
+          <div class="product-info">
+            <div class="product-name">{{ item.name || `Producto ${item.productId}` }}</div>
+            <div class="product-meta">
+              <span *ngIf="item.code" class="badge-code">{{ item.code }}</span>
+              <span *ngIf="item.category" class="badge-category">{{ item.category }}</span>
+            </div>
+          </div>
+          <div class="product-qty-price">
+            <div class="qty">
+              <span class="qty-label">Cantidad:</span>
+              <span class="qty-value">{{ item.qty }} unidades</span>
+            </div>
+            <div *ngIf="item.price" class="price">
+              <span class="price-label">Precio unitario:</span>
+              <span class="price-value">S/ {{ item.price | number:'1.2-2' }}</span>
+            </div>
+          </div>
+          <div *ngIf="item.price" class="product-total">
+            S/ {{ (item.price * item.qty) | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <!-- TOTAL GENERAL -->
+        <div class="total-section" *ngIf="getTotalAmount() > 0">
+          <span class="total-label">Total de solicitud:</span>
+          <span class="total-amount">S/ {{ getTotalAmount() | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <!-- HISTORIAL DE CAMBIOS DE ESTADO -->
+      <div class="section" *ngIf="stateHistory && stateHistory.length > 0">
+        <h4>Historial de cambios</h4>
+        <div class="timeline">
+          <div *ngFor="let step of stateHistory; let isLast = last" class="timeline-item" [class.last]="isLast">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-state">{{ step.estado }}</div>
+              <div class="timeline-date">{{ step.fecha | date:'short' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCIONES SUPERVISOR -->
+      <div class="section supervisor-actions" *ngIf="isSupervisor()">
+        <h4>Acciones de supervisor</h4>
+        <div class="button-group">
+          <ion-button color="success" (click)="approve()" class="full-button">
+            ✓ Aprobar solicitud
+          </ion-button>
+          <ion-button color="danger" fill="outline" (click)="reject()" class="full-button">
+            ✗ Rechazar solicitud
+          </ion-button>
+        </div>
+
+        <div class="assign-section">
+          <h5>Crear orden y asignar transportista</h5>
+          <ion-select placeholder="Seleccionar transportista" [(ngModel)]="selectedTransportista" class="select-field">
+            <ion-select-option *ngFor="let t of transportistas" [value]="t.id">{{ t.name }}</ion-select-option>
+          </ion-select>
+          <ion-button (click)="assignTransportista()" expand="block">
+            → Crear orden y asignar
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- ACCIONES CLIENTE -->
+      <div class="section cliente-actions" *ngIf="isCliente()">
+        <h4>Mis acciones</h4>
+        <div class="button-group">
+          <ion-button 
+            *ngIf="canCancel()"
+            color="danger" 
+            fill="outline" 
+            (click)="cancelSolicitud()" 
+            expand="block"
+            class="action-button">
+            ✗ Cancelar solicitud
+          </ion-button>
+          
+          <ion-button 
+            *ngIf="canConfirmDelivery()"
+            color="success" 
+            (click)="confirmDelivery()" 
+            expand="block"
+            class="action-button">
+            ✓ Confirmar recepción
+          </ion-button>
+
+          <ion-button 
+            *ngIf="canViewTraceability()"
+            color="primary" 
+            fill="outline"
+            (click)="viewTraceability()" 
+            expand="block"
+            class="action-button">
+            📍 Ver trazabilidad
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- BOTÓN VOLVER -->
+      <div class="section">
+        <ion-button fill="clear" (click)="goBack()" expand="block" class="back-button">
+          ← Volver a mis solicitudes
+        </ion-button>
+      </div>
+
+    </ion-card-content>
+  </ion-card>
+
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="1600" (didDismiss)="toastOpen=false"></ion-toast>
+</ion-content>

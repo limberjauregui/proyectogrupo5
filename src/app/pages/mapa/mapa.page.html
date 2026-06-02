@@ -1,0 +1,180 @@
+<ion-header [translucent]="true" class="app-header ion-no-border">
+  <ion-toolbar class="app-toolbar">
+    <ion-title>🗺️ Mapa Global de Entregas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="mapa-page">
+  <div class="mapa-content">
+    
+    <!-- MAP CARD -->
+    <div class="map-card">
+      <div class="map-inner">
+        <div id="mapContainer" class="leaflet-map-container" [class.hidden]="mapLoadError"></div>
+
+        <!-- Fallback if map fails -->
+        <div class="map-error-fallback" *ngIf="mapLoadError">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>No se pudo cargar el mapa. Por favor, intenta de nuevo.</p>
+          <ion-button fill="outline" (click)="refreshMap()">Reintentar</ion-button>
+        </div>
+
+        <!-- Floating Controls -->
+        <div class="map-floating-controls" *ngIf="!mapLoadError">
+          <button class="control-btn" (click)="toggleGps()" [class.active]="isGpsActive">
+            <ion-icon name="locate-outline"></ion-icon>
+          </button>
+          <button class="control-btn" (click)="centerMap()">
+            <ion-icon name="navigate-outline"></ion-icon>
+          </button>
+          <button class="control-btn" (click)="toggleRoutes()">
+            <ion-icon name="git-branch-outline"></ion-icon>
+          </button>
+          <button class="control-btn" (click)="zoomIn()">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+          <button class="control-btn" (click)="zoomOut()">
+            <ion-icon name="remove-outline"></ion-icon>
+          </button>
+          <button class="control-btn refresh" (click)="refreshMap()">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </button>
+        </div>
+
+        <div class="map-bottom-sheet"
+             *ngIf="selectedDelivery"
+             #sheetRef
+             [style.transform]="'translateY(' + sheetOffset + 'px)'"
+             (pointermove)="onSheetPointerMove($event)"
+             (pointerup)="onSheetPointerUp($event)"
+             (pointercancel)="onSheetPointerUp($event)"
+             (lostpointercapture)="onSheetPointerUp($event)">
+          <div class="sheet-handle" (pointerdown)="onSheetPointerDown($event)">
+            <div class="drag-dot"></div>
+            <ion-button fill="clear" size="small" class="close-sheet" (click)="closeSheet()">
+              <ion-icon [icon]="closeOutline"></ion-icon>
+            </ion-button>
+          </div>
+
+          <div class="sheet-body">
+            <div class="sheet-header">
+              <div>
+                <p class="summary-label">Entrega Seleccionada</p>
+                <h2>{{ selectedDelivery.code }}</h2>
+                <p class="summary-subtitle">{{ selectedDelivery.destination }}</p>
+              </div>
+              <ion-badge [ngClass]="getStatusClass(selectedDelivery.status)">{{ selectedDelivery.status }}</ion-badge>
+            </div>
+
+            <div class="sheet-grid">
+              <div class="sheet-item full">
+                <ion-icon name="pin-outline"></ion-icon>
+                <div>
+                  <span>Dirección</span>
+                  <strong>{{ selectedDelivery.destination }}</strong>
+                </div>
+              </div>
+
+              <div class="sheet-item">
+                <ion-icon name="person-outline"></ion-icon>
+                <div>
+                  <span>Transportista</span>
+                  <strong>{{ selectedDelivery.driver }}</strong>
+                </div>
+              </div>
+
+              <div class="sheet-item">
+                <ion-icon name="time-outline"></ion-icon>
+                <div>
+                  <span>ETA prevista</span>
+                  <strong>{{ selectedDelivery.eta }}</strong>
+                </div>
+              </div>
+
+              <div class="sheet-item">
+                <ion-icon name="thermometer-outline"></ion-icon>
+                <div>
+                  <span>Temperatura</span>
+                  <strong [class.danger]="isTempCritical(selectedDelivery.temp)">{{ selectedDelivery.temp || 'N/A' }}</strong>
+                </div>
+              </div>
+
+              <div class="sheet-item">
+                <ion-icon name="call-outline"></ion-icon>
+                <div>
+                  <span>Contacto</span>
+                  <strong>{{ selectedDelivery.phone || 'No disponible' }}</strong>
+                </div>
+              </div>
+
+              <div class="sheet-item">
+                <ion-icon name="map-outline"></ion-icon>
+                <div>
+                  <span>Coordenadas</span>
+                  <strong>{{ selectedDelivery.lat?.toFixed(5) || 'N/A' }} , {{ selectedDelivery.lng?.toFixed(5) || 'N/A' }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="sheet-actions">
+              <ion-button expand="block" color="primary" (click)="showLocation()">
+                <ion-icon slot="start" name="navigate-outline"></ion-icon>
+                Centrar en mapa
+              </ion-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <section class="stats-grid">
+      <article *ngFor="let stat of stats" class="stat-card">
+        <div class="stat-header">
+          <div class="icon-wrapper">
+            <ion-icon [icon]="stat.icon"></ion-icon>
+          </div>
+          <div>
+            <p class="stat-label">{{ stat.label }}</p>
+            <h3 class="stat-value">{{ stat.value }}</h3>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ACTIVE DELIVERIES LIST -->
+    <section class="deliveries-table">
+      <div class="section-header">
+        <div>
+          <p class="section-title">🚚 Control de Flota</p>
+          <h3>Unidades Activas</h3>
+        </div>
+        <ion-badge color="medium">{{ activeDeliveries.length }}</ion-badge>
+      </div>
+      
+      <div class="table-wrapper">
+        <div class="table-row header-row">
+          <span class="col-code">Código</span>
+          <span class="col-dest">Destino</span>
+          <span class="col-driver">Transportista</span>
+          <span class="col-status">Estado</span>
+        </div>
+        
+        <div 
+          *ngFor="let item of activeDeliveries" 
+          class="table-row data-row" 
+          [class.active]="selectedDelivery?.code === item.code"
+          (click)="selectDelivery(item)"
+        >
+          <span class="col-code bold">{{ item.code }}</span>
+          <span class="col-dest">{{ item.destination }}</span>
+          <span class="col-driver">{{ item.driver }}</span>
+          <span class="col-status"><ion-badge [ngClass]="getStatusClass(item.status)">{{ item.status }}</ion-badge></span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <ion-toast [isOpen]="toastOpen" [message]="toastMessage" duration="1800" (didDismiss)="toastOpen = false"></ion-toast>
+</ion-content>

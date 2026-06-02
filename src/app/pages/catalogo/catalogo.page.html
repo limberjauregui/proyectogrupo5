@@ -1,0 +1,131 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Catálogo de Productos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen class="catalogo-page">
+  <div class="catalogo-intro">
+    <h2>Productos médicos</h2>
+    <p>Selecciona productos y envía tu solicitud al almacén central.</p>
+  </div>
+
+  <div class="filters">
+    <ion-searchbar placeholder="Buscar producto o código..." [(ngModel)]="search" (ionInput)="applySearch()" class="search-custom"></ion-searchbar>
+    <div class="category-chips">
+      <button class="chip" [class.active]="!selectedCategory" (click)="selectedCategory=''; applySearch()">
+        Todas
+      </button>
+      <button class="chip" *ngFor="let c of categories" [class.active]="selectedCategory===c" (click)="selectedCategory=c; applySearch()">
+        {{ c }}
+      </button>
+    </div>
+  </div>
+
+  <ion-list class="products-list">
+    <ion-card *ngFor="let product of filtered; let i = index" 
+              class="product-card anim-fade-scale"
+              [ngStyle]="{'animation-delay': (i < 8 ? i * 0.06 : 0.48) + 's'}">
+      <!-- Imagen del producto -->
+      <div class="product-img-wrapper">
+        <img
+          *ngIf="product.imageUrl"
+          [src]="product.imageUrl"
+          [alt]="product.name"
+          class="product-img"
+        />
+        <div *ngIf="!product.imageUrl" class="product-img-placeholder">
+          <ion-icon name="cube-outline"></ion-icon>
+        </div>
+      </div>
+
+      <ion-card-header>
+        <ion-card-title>{{ product.name }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <!-- INFO PRINCIPAL -->
+        <div class="product-info-grid">
+          <div class="info-row">
+            <span class="info-label">Categoría:</span>
+            <span class="info-value">{{ product.category }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Código:</span>
+            <span class="info-value">{{ product.code }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Descripción:</span>
+            <span class="info-value">{{ product.proveedor || 'Proveedor estándar' }} · Lote {{ product.lote || 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Stock disponible:</span>
+            <span class="info-value">{{ product.stock }} unidades</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Requiere frío:</span>
+            <span class="info-value">{{ product.requiereFrio ? 'Sí' : 'No' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Precio unitario:</span>
+            <span class="info-value price">S/ {{ product.price | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="stock-badge">
+            <ion-badge [color]="product.stock > 50 ? 'success' : product.stock > 15 ? 'warning' : 'danger'">
+              {{ product.stock > 50 ? '✓ Stock amplio' : product.stock > 15 ? '⚠ Stock medio' : '⚠ Stock bajo' }}
+            </ion-badge>
+          </div>
+        </div>
+
+        <!-- CANTIDAD -->
+        <div class="qty-section">
+          <label class="qty-label">Cantidad deseada:</label>
+          <ion-item lines="none">
+            <ion-input 
+              type="number" 
+              min="0" 
+              [max]="product.stock" 
+              placeholder="0"
+              [value]="cart[product.id] || 0" 
+              (ionChange)="onQtyChange(product, $any($event.detail).value)">
+            </ion-input>
+            <span class="qty-max">Máx: {{ product.stock }}</span>
+          </ion-item>
+        </div>
+
+        <!-- BOTÓN -->
+        <ion-button 
+          expand="block" 
+          fill="solid" 
+          class="action-button"
+          [disabled]="(cart[product.id] || 0) <= 0"
+          (click)="onAction(product)">
+          {{ (cart[product.id] || 0) > 0 ? '✓ Agregado' : 'Agregar al carrito' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+
+  <!-- RESUMEN DEL CARRITO -->
+  <div class="cart-summary" *ngIf="cartCount > 0">
+    <div class="cart-info">
+      📦 <strong>{{ cartCount }}</strong> productos en carrito
+    </div>
+    <div class="cart-buttons">
+      <ion-button fill="solid" color="primary" (click)="openResumen()" class="btn-solicitar">
+        Enviar solicitud
+      </ion-button>
+      <ion-button fill="outline" color="medium" (click)="cart = {}" class="btn-vaciar">
+        Vaciar
+      </ion-button>
+    </div>
+  </div>
+
+  <ion-toast
+    [isOpen]="toastOpen"
+    message="{{ toastMessage }}"
+    duration="1600"
+    (didDismiss)="toastOpen = false"
+  ></ion-toast>
+</ion-content>

@@ -1,0 +1,334 @@
+.mas-content {
+  --background: #090f1d;
+  background: #090f1d;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  display: grid;
+  place-items: center;
+}
+
+.mas-wrapper {
+  max-width: 600px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 1rem;
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0));
+}
+
+.mas-card {
+  background: rgba(17, 25, 40, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mas-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  
+  h2 {
+    margin: 0;
+    font-size: 1.65rem;
+    font-weight: 800;
+    background: linear-gradient(120deg, #14b8a6, #06b6d4, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.panel-label {
+  display: inline-block;
+  color: #14b8a6;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.close-btn {
+  --border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  --padding-start: 0;
+  --padding-end: 0;
+  margin: 0;
+  color: #94a3b8;
+  
+  ion-icon {
+    font-size: 1.5rem;
+  }
+}
+
+// Segment Selector Switch
+.segment-container {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.35rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.premium-segment {
+  background: transparent;
+  
+  ion-segment-button {
+    --color: #94a3b8;
+    --color-checked: #ffffff;
+    --indicator-color: #14b8a6;
+    --border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    height: 38px;
+    margin: 0;
+  }
+}
+
+// TAB 1: MODULOS ADICIONALES GRID
+.mas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-stat-row,
+.profile-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  @media (max-width: 700px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stat-card,
+.summary-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-card strong,
+.summary-chip strong {
+  font-size: 1.3rem;
+  color: #ffffff;
+}
+
+.stat-card span,
+.summary-chip .summary-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mas-tile {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #f1f5f9;
+  
+  &:hover {
+    background: rgba(20, 184, 166, 0.05);
+    border-color: rgba(20, 184, 166, 0.25);
+    transform: translateY(-2px);
+    
+    .tile-icon {
+      background: rgba(20, 184, 166, 0.2);
+      color: #14b8a6;
+      box-shadow: 0 0 15px rgba(20, 184, 166, 0.25);
+    }
+  }
+  
+  .tile-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    transition: all 0.25s ease;
+  }
+  
+  .tile-label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+  }
+}
+
+// TAB 2: MI PERFIL VIEW
+.perfil-tab-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  
+  .avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%);
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-size: 1.85rem;
+    font-weight: 800;
+    box-shadow: 0 10px 25px rgba(20, 184, 166, 0.3);
+  }
+  
+  h3 {
+    margin: 0.5rem 0 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+  
+  ion-badge {
+    border-radius: 99px;
+    padding: 0.4rem 0.85rem;
+    font-weight: 800;
+    font-size: 0.72rem;
+  }
+}
+
+.profile-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 0.85rem 1.25rem;
+  border-radius: 16px;
+  
+  ion-icon {
+    font-size: 1.35rem;
+    color: #14b8a6;
+    flex-shrink: 0;
+  }
+  
+  .txt {
+    display: flex;
+    flex-direction: column;
+    
+    .lbl {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    strong {
+      font-size: 0.92rem;
+      color: #f1f5f9;
+      margin-top: 0.15rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.action-buttons-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  
+  ion-button {
+    --border-radius: 14px;
+    font-weight: 700;
+    height: 46px;
+    margin: 0;
+    
+    &.logout-btn {
+      --color: #f87171;
+    }
+  }
+}
+
+// Modals
+.premium-modal {
+  --background: #0f172a;
+  --color: #ffffff;
+  --border-radius: 28px;
+  
+  &::part(content) {
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  ion-toolbar {
+    --background: #1e293b;
+    --color: #ffffff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .subtitle-label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #14b8a6;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.25rem;
+    text-align: center;
+  }
+}
+
+.premium-input-item {
+  --background: rgba(255, 255, 255, 0.04);
+  --color: #ffffff;
+  --highlight-color-focused: #14b8a6;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  margin-bottom: 1.25rem;
+}
+
+.modal-actions {
+  ion-button {
+    --border-radius: 14px;
+    height: 48px;
+    font-weight: 700;
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .mas-grid {
+    grid-template-columns: 1fr;
+  }
+}

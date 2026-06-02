@@ -1,0 +1,364 @@
+.catalogo-page {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100%;
+  padding: 0 !important;
+  padding-bottom: calc(140px + env(safe-area-inset-bottom, 0));
+
+  .catalogo-intro {
+    margin: 1.5rem 1rem 1rem 1rem;
+    padding: 1.25rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+    h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      color: #1e293b;
+    }
+
+    p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1rem;
+    padding: 0;
+
+    .search-custom {
+      --padding-start: 0.75rem;
+      --padding-end: 0.75rem;
+      padding: 0 !important;
+      border-radius: 8px;
+      background: white;
+      margin: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .category-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0 1rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    @media (max-width: 600px) {
+      margin: 0 0.5rem;
+      padding: 0.5rem;
+    }
+  }
+
+  .chip {
+    border: 1px solid #e2e8f0;
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    white-space: nowrap;
+
+    &:hover:not(.active) {
+      border-color: #667eea;
+      background: #f8fafc;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+    }
+  }
+
+  .products-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 1rem 100px 1rem;
+    margin: 0;
+    background: transparent;
+    --ion-item-background: transparent;
+
+    @media (max-width: 600px) {
+      padding: 0 0.5rem 100px 0.5rem;
+      gap: 0.5rem;
+    }
+  }
+
+  .product-card {
+    margin: 0;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: white;
+
+    &:hover {
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+      transform: translateY(-2px);
+    }
+
+    ion-card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem !important;
+
+      ion-card-title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+      }
+    }
+
+    ion-card-content {
+      padding: 1rem;
+
+      .product-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+
+        @media (max-width: 720px) {
+          grid-template-columns: 1fr;
+        }
+
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          font-size: 0.9rem;
+
+          .info-label {
+            font-weight: 600;
+            color: #64748b;
+            min-width: 120px;
+          }
+
+          .info-value {
+            color: #1e293b;
+            font-weight: 500;
+            text-align: right;
+
+            &.price {
+              font-size: 1.1rem;
+              font-weight: 700;
+              color: #667eea;
+            }
+          }
+        }
+
+        .stock-badge {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 0.5rem;
+
+          ion-badge {
+            --padding-start: 0.75rem;
+            --padding-end: 0.75rem;
+            --padding-top: 0.5rem;
+            --padding-bottom: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+          }
+        }
+      }
+
+      .qty-section {
+        margin-bottom: 1rem;
+
+        .qty-label {
+          display: block;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #334155;
+          margin-bottom: 0.5rem;
+        }
+
+        ion-item {
+          --padding-start: 0;
+          --padding-end: 0;
+          background: transparent !important;
+          --background: transparent;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          ion-input {
+            --padding-start: 0.75rem;
+            --padding-end: 0;
+            flex: 1;
+            font-weight: 600;
+          }
+
+          .qty-max {
+            font-size: 0.75rem;
+            color: #64748b;
+            padding-right: 0.5rem;
+            white-space: nowrap;
+          }
+        }
+      }
+
+      .action-button {
+        --padding-start: 1rem;
+        --padding-end: 1rem;
+        --min-height: 2.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin: 0 !important;
+
+        &:disabled {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+
+  .product-img-wrapper {
+    width: 100%;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf0 100%);
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .product-img {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.10));
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+
+    .product-card:hover & {
+      transform: scale(1.08);
+    }
+  }
+
+  /* Responsive tweaks for very narrow screens */
+  @media (max-width: 420px) {
+    .product-img-wrapper { height: 80px; }
+    .product-img { width: 56px; height: 56px; }
+    .product-card { padding: 0; }
+    .product-card ion-card-header { padding: 0.75rem !important; }
+    .product-card ion-card-title { font-size: 1rem; }
+    .product-card ion-card-content { padding: 0.75rem; }
+    .product-info-grid { gap: 0.5rem; }
+  }
+
+  .product-img-placeholder {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ion-color-light);
+    border-radius: 50%;
+
+    ion-icon {
+      font-size: 32px;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .cart-summary {
+    position: fixed;
+    bottom: calc(70px + env(safe-area-inset-bottom, 0));
+    left: calc(12px + env(safe-area-inset-left, 0));
+    right: calc(12px + env(safe-area-inset-right, 0));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 50;
+
+    @media (max-width: 600px) {
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      left: 8px;
+      right: 8px;
+    }
+
+    .cart-info {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1e293b;
+      flex-shrink: 0;
+
+      @media (max-width: 600px) {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    .cart-buttons {
+      display: flex;
+      gap: 0.75rem;
+      flex: 1;
+      min-width: 200px;
+
+      @media (max-width: 600px) {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .btn-solicitar {
+        --padding-start: 1rem;
+        --padding-end: 1rem;
+        --min-height: 2.25rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex: 2;
+
+        @media (max-width: 600px) {
+          flex: 1;
+          order: 1;
+        }
+      }
+
+      .btn-vaciar {
+        --padding-start: 1rem;
+        --padding-end: 1rem;
+        --min-height: 2.25rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        flex: 1;
+
+        @media (max-width: 600px) {
+          flex: 1;
+          order: 2;
+        }
+      }
+    }
+  }
+
+  ion-toast {
+    --color: white;
+  }
+}

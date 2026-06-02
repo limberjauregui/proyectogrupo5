@@ -1,13 +1,17 @@
 /*
  * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * ============================================================================
+ * Medical Enterprise Design System - Global Styles
+ * 
+ * Imports theme variables first, then applies global Ionic styles and custom
+ * component classes. Supports light/dark mode with CSS variables.
  */
+
+// Theme variables (MUST be first)
+@import "theme/variables.scss";
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
@@ -25,13 +29,593 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import "leaflet/dist/leaflet.css";
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+/* ============================================================================
+   GLOBAL HTML & BODY STYLES
+   ============================================================================ */
+
+/* DARK MODE OVERRIDES */
+.dark-mode, .ion-palette-dark, .dark {
+  --ion-background-color: #071827;
+  --ion-color-secondary: #0b1e2d;
+  --ion-color-tertiary: #082033;
+  --ion-color-medium: #94a3b8;
+  --ion-color-light: #e2e8f0;
+  --ion-text-color: #ffffff;
+  --ion-text-color-secondary: #94a3b8;
+  --ion-card-background: rgba(17, 25, 40, 0.75);
+  --ion-item-background: rgba(255, 255, 255, 0.08);
+  --ion-toolbar-background: #082033;
+  --ion-tab-bar-background: #0b1e2d;
+  --app-elevation: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+  /* Ensure design tokens used across components switch in dark mode */
+  --surface-primary: #111827;
+  --surface-secondary: #071827;
+  --surface-tertiary: #0b2530;
+  --surface-inverse: #F8FAFC;
+
+  --text-primary: #F1F5F9;
+  --text-secondary: #CBD5E1;
+
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.10);
+
+  /* Map Ionic aliases too */
+  --ion-background-color: var(--surface-secondary);
+  --ion-card-background: var(--surface-primary);
+  --ion-item-background: var(--surface-tertiary);
+  --ion-toolbar-background: var(--surface-primary);
+  --ion-tab-bar-background: var(--surface-primary);
+}
+
+html, body {
+  height: 100%;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+}
+
+ion-app, ion-content, .ion-page {
+  background: transparent;
+}
+
+ion-content {
+  --background: var(--ion-background-color);
+  --padding-bottom: calc(80px + env(safe-area-inset-bottom, 0));
+  min-height: 100%;
+}
+
+ion-card {
+  border-radius: var(--app-border-radius);
+  background: var(--ion-card-background);
+  box-shadow: var(--app-elevation);
+  color: var(--ion-text-color);
+}
+
+ion-toolbar {
+  --background: var(--ion-toolbar-background);
+  color: #ffffff;
+}
+
+ion-button {
+  border-radius: 14px;
+  font-weight: 600;
+}
+
+ion-button.fill-solid {
+  --background: var(--ion-color-primary);
+  --background-activated: rgba(18, 179, 168, 0.85);
+  --color: #ffffff;
+}
+
+ion-item {
+  --background: var(--ion-item-background);
+  --border-radius: 14px;
+  --highlight-color-focused: var(--ion-color-primary);
+}
+
+ion-tab-bar {
+  --background: var(--ion-tab-bar-background);
+  --border: none;
+  box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.24);
+}
+
+ion-tab-button {
+  --color: #94a3b8;
+  --color-selected: var(--ion-color-primary);
+}
+
+ion-tab-button.ion-selected {
+  --background: var(--ion-tab-button-active-background);
+  border-radius: 16px;
+}
+
+ion-icon {
+  color: inherit;
+}
+
+ion-badge {
+  font-weight: 700;
+  border-radius: 16px;
+  --padding-top: 0.42rem;
+  --padding-bottom: 0.42rem;
+  --padding-start: 0.9rem;
+  --padding-end: 0.9rem;
+  min-height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
+}
+
+ion-badge[color='success'] {
+  --background: #d1fae5;
+  --color: #047857;
+}
+
+ion-badge[color='warning'] {
+  --background: #fef3c7;
+  --color: #92400e;
+}
+
+ion-badge[color='danger'] {
+  --background: #fee2e2;
+  --color: #991b1b;
+}
+
+ion-badge[color='primary'] {
+  --background: #dbeafe;
+  --color: #1d4ed8;
+}
+
+ion-badge[color='medium'] {
+  --background: #e2e8f0;
+  --color: #334155;
+}
+
+::selection {
+  background: rgba(18, 179, 168, 0.24);
+}
+
+/* ============================================================================
+   PREMIUM COMPONENT STYLES
+   ============================================================================ */
+
+/* STATUS BADGES - Medical semantic colors */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: all var(--transition-base);
+
+  &.status-pending {
+    background: rgba(245, 158, 11, 0.12);
+    color: #92400e;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
+  &.status-preparing {
+    background: rgba(6, 182, 212, 0.12);
+    color: #0c4a6e;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+  }
+
+  &.status-in-transit {
+    background: rgba(14, 165, 233, 0.12);
+    color: #0c2d6b;
+    border: 1px solid rgba(14, 165, 233, 0.3);
+  }
+
+  &.status-delivered {
+    background: rgba(16, 185, 129, 0.12);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  &.status-cancelled,
+  &.status-rejected {
+    background: rgba(239, 68, 68, 0.12);
+    color: #7f1d1d;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+
+  &.status-critical {
+    background: rgba(239, 68, 68, 0.15);
+    color: #be123c;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+    font-weight: 700;
+    animation: pulse-critical 2s infinite;
+  }
+}
+
+@keyframes pulse-critical {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ── Animaciones globales de entrada ── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.93); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-fade-up          { animation: fadeInUp    0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-down        { animation: fadeInDown  0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-scale       { animation: fadeInScale 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-slide-right      { animation: slideInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-count            { animation: countUp     0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Delays escalonados para listas */
+.anim-delay-1  { animation-delay: 0.05s; }
+.anim-delay-2  { animation-delay: 0.10s; }
+.anim-delay-3  { animation-delay: 0.15s; }
+.anim-delay-4  { animation-delay: 0.20s; }
+.anim-delay-5  { animation-delay: 0.25s; }
+.anim-delay-6  { animation-delay: 0.30s; }
+
+@media (prefers-reduced-motion: reduce) {
+  [class*='anim-'] { animation: none !important; }
+}
+
+/* PREMIUM CARD - Premium elevation and interaction */
+.card-premium {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  padding: 1.2rem;
+  box-shadow: var(--shadow-base);
+  transition: all var(--transition-base);
+
+  &:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-medium);
+    transform: translateY(-2px);
+  }
+
+  &.interactive {
+    cursor: pointer;
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.8rem;
+
+    .card-title {
+      font-size: var(--font-h4-size);
+      font-weight: var(--font-h4-weight);
+      color: var(--text-primary);
+      margin: 0;
+    }
+  }
+
+  .card-content {
+    font-size: var(--font-body-size);
+    color: var(--text-secondary);
+    line-height: var(--font-body-line-height);
+
+    p {
+      margin: 0.5rem 0;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+
+    .card-meta {
+      font-size: var(--font-small-size);
+      color: var(--text-tertiary);
+    }
+  }
+}
+
+/* PROGRESS BAR - Medical order tracking */
+.progress-track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0;
+
+  .track-step {
+    flex: 1;
+    height: 4px;
+    background: var(--surface-tertiary);
+    border-radius: 2px;
+    overflow: hidden;
+
+    &.completed {
+      background: var(--color-success);
+    }
+
+    &.active {
+      background: var(--color-primary);
+      animation: slide-progress 1s ease-in-out infinite;
+    }
+
+    &.pending {
+      background: var(--surface-tertiary);
+    }
+  }
+}
+
+@keyframes slide-progress {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* STOCK INDICATOR - Visual stock levels */
+.stock-level {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+
+  .stock-bar {
+    width: 60px;
+    height: 6px;
+    background: var(--surface-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+
+    .stock-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: all var(--transition-base);
+
+      &.critical {
+        background: var(--color-danger);
+      }
+
+      &.low {
+        background: var(--color-warning);
+      }
+
+      &.normal {
+        background: var(--color-success);
+      }
+    }
+  }
+}
+
+/* INPUT FIELDS - Premium input styling */
+ion-input,
+ion-textarea {
+  --background: var(--surface-tertiary);
+  --border-radius: var(--radius-md);
+  --padding-top: 0.75rem;
+  --padding-bottom: 0.75rem;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --color: var(--text-primary);
+  --placeholder-color: var(--text-tertiary);
+
+  &.focused {
+    --background: var(--surface-primary);
+    --border-bottom-width: 2px;
+    --border-bottom-color: var(--color-primary);
+  }
+}
+
+/* BUTTON ENHANCEMENTS - Premium button interaction */
+ion-button.premium {
+  --border-radius: var(--radius-md);
+  --padding-top: 0.75rem;
+  --padding-bottom: 0.75rem;
+  --padding-start: 1.5rem;
+  --padding-end: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all var(--transition-base);
+
+  &.solid {
+    --background: var(--color-primary);
+    --color: #ffffff;
+
+    &:hover:not(:disabled) {
+      --background: #0284C7;
+      box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+  }
+
+  &.outline {
+    --border-color: var(--border-medium);
+    --border-width: 1.5px;
+    --background: transparent;
+    --color: var(--color-primary);
+
+    &:hover:not(:disabled) {
+      --background: rgba(14, 165, 233, 0.08);
+    }
+  }
+}
+
+/* DIVIDER - Premium separator */
+.divider-premium {
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-light);
+  }
+
+  &::before {
+    margin-right: 0.75rem;
+  }
+
+  &::after {
+    margin-left: 0.75rem;
+  }
+}
+
+/* SKELETON LOADER - Loading animation */
+@keyframes skeleton-loading {
+  0%, 100% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-tertiary) 0%,
+    var(--surface-primary) 50%,
+    var(--surface-tertiary) 100%
+  );
+  background-size: 1000px 100%;
+  animation: skeleton-loading 2s infinite;
+  border-radius: var(--radius-md);
+
+  &.text {
+    height: 12px;
+    margin-bottom: 0.5rem;
+  }
+
+  &.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+  }
+
+  &.card {
+    height: 120px;
+  }
+}
+
+/* RESPONSIVE ADJUSTMENTS */
+@media (max-width: 640px) {
+  .card-premium {
+    padding: 1rem;
+  }
+
+  ion-button.premium {
+    --padding-start: 1rem;
+    --padding-end: 1rem;
+    width: 100%;
+  }
+}
+
+/* ============================================================================
+   ANIMACIONES GLOBALES DE ENTRADA
+   ============================================================================ */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.93); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-fade-up          { animation: fadeInUp    0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-down        { animation: fadeInDown  0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-scale       { animation: fadeInScale 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-slide-right      { animation: slideInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-count            { animation: countUp     0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Delays escalonados para listas */
+.anim-delay-1  { animation-delay: 0.05s; }
+.anim-delay-2  { animation-delay: 0.10s; }
+.anim-delay-3  { animation-delay: 0.15s; }
+.anim-delay-4  { animation-delay: 0.20s; }
+.anim-delay-5  { animation-delay: 0.25s; }
+.anim-delay-6  { animation-delay: 0.30s; }
+
+/* Respetar preferencia de animaciones reducidas */
+@media (prefers-reduced-motion: reduce) {
+  [class*='anim-'] { animation: none !important; }
+}
