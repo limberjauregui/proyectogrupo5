@@ -14,6 +14,7 @@ import {
   IonItem,
   IonLabel,
   IonList,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -33,6 +34,8 @@ import {
 import { AuthService } from '../../auth.service';
 import { DataService, KpiItem, DeliveryItem, AlertItem, ProductItem } from '../../data.service';
 import { TemperatureService } from '../../services/temperature.service';
+import { UsersService, UserAccount } from '../../services/users.service';
+import { AccountsModalComponent } from '../../components/accounts-modal/accounts-modal.component';
 import { DestroyRef, inject } from '@angular/core';
 
 @Component({
@@ -76,6 +79,11 @@ export class DashboardPage implements OnInit {
   toastMessage = '';
   showControlDiarioModal = false;
 
+  users: UserAccount[] = [];
+  metrics = { totalUsers: 0 };
+  private modalCtrl = inject(ModalController);
+  private usersService = inject(UsersService);
+
   constructor(
     public authService: AuthService,
     private dataService: DataService,
@@ -113,6 +121,12 @@ export class DashboardPage implements OnInit {
 
     this.coldChainSummary = this.buildColdChainSummary();
     this.buildChartData();
+
+    this.usersService.users$.subscribe(users => {
+      this.users = users;
+      this.metrics.totalUsers = users.length;
+    });
+    this.usersService.loadUsers();
   }
 
   private buildColdChainSummary() {
@@ -224,5 +238,20 @@ export class DashboardPage implements OnInit {
 
   closeControlDiario() {
     this.showControlDiarioModal = false;
+  }
+
+  async openCreateAccountModal() {
+    const modal = await this.modalCtrl.create({
+      component: AccountsModalComponent,
+      cssClass: 'accounts-modal'
+    });
+
+    modal.onDidDismiss().then((result: any) => {
+      if (result.data?.created) {
+        this.usersService.loadUsers();
+      }
+    });
+
+    await modal.present();
   }
 }

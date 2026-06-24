@@ -150,6 +150,37 @@
         </div>
       </div>
     </div>
+
+    <!-- START NUEVA SECCIÓN: CUENTAS DEL SISTEMA -->
+    <div class="section-header" style="margin-top: 32px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;">Cuentas del Sistema</h2>
+      <ion-button fill="clear" size="small" (click)="openCreateAccountModal()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nueva Cuenta
+      </ion-button>
+    </div>
+
+    <div class="empty-state" *ngIf="users.length === 0" style="text-align: center; padding: 2rem; background: #fff; border-radius: 12px; margin-top: 16px;">
+      <ion-icon name="people-outline" style="font-size: 2rem; color: #94a3b8;"></ion-icon>
+      <p style="color: #64748b; margin-top: 8px;">No hay usuarios registrados.</p>
+    </div>
+
+    <div class="users-list" *ngIf="users.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 16px;">
+      <div class="user-card" *ngFor="let user of users" style="background: #fff; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div class="user-avatar" style="width: 48px; height: 48px; border-radius: 50%; background: #f1f5f9; color: #334155; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+          {{ user.name.charAt(0).toUpperCase() }}
+        </div>
+        <div class="user-info" style="flex: 1;">
+          <h3 style="margin: 0; font-size: 1rem; font-weight: 600; color: #1e293b;">{{ user.name }}</h3>
+          <p style="margin: 4px 0 0; font-size: 0.875rem; color: #64748b;">{{ user.email }}</p>
+        </div>
+        <div class="user-role" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; padding: 4px 12px; border-radius: 100px; background: #e2e8f0; color: #475569;">
+          {{ user.role }}
+        </div>
+      </div>
+    </div>
+    <!-- END NUEVA SECCIÓN -->
+
   </div>
 
   <ion-modal

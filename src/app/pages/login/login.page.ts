@@ -29,9 +29,7 @@ export class LoginPage {
     this.errorMessage = '';
     this.loading = true;
 
-    const ok = this.authService.login(this.username, this.password);
-
-    setTimeout(() => {
+    this.authService.login(this.username, this.password).subscribe(ok => {
       this.loading = false;
 
       if (!ok) {
@@ -43,21 +41,20 @@ export class LoginPage {
         console.log('Login en modo producción');
       }
 
-      // BUG-1: redirect user according to role/home route
       this.router.navigateByUrl(this.authService.getRedirectRoute());
-    }, 500);
+    });
   }
 
   quickLogin(role: 'supervisor' | 'transportista' | 'cliente'): void {
     if (role === 'supervisor') {
-      this.username = 'admin';
-      this.password = 'admin123';
+      this.username = 'admin@vitalflow.com';
+      this.password = '123456';
     } else if (role === 'transportista') {
-      this.username = 'driver';
-      this.password = 'driver123';
+      this.username = 'transporte@vitalflow.com';
+      this.password = '123456';
     } else {
-      this.username = 'cliente';
-      this.password = 'cliente123';
+      this.username = 'cliente@vitalflow.com';
+      this.password = '123456';
     }
 
     this.login();

@@ -1,0 +1,74 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="modal-toolbar">
+    <ion-title>Nueva Cuenta</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding modal-content">
+  <div class="feedback-container" *ngIf="successMessage || errorMessage">
+    <div class="alert success" *ngIf="successMessage">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      {{ successMessage }}
+    </div>
+    <div class="alert error" *ngIf="errorMessage">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="modern-form">
+    
+    <div class="form-group">
+      <ion-label position="stacked">Nombre Completo</ion-label>
+      <ion-item lines="none" class="input-item" [class.has-error]="accountForm.get('name')?.invalid && accountForm.get('name')?.touched">
+        <ion-input type="text" formControlName="name" placeholder="Ej. Juan Pérez"></ion-input>
+      </ion-item>
+      <span class="error-text" *ngIf="accountForm.get('name')?.invalid && accountForm.get('name')?.touched">
+        El nombre es requerido (mín. 3 caracteres).
+      </span>
+    </div>
+
+    <div class="form-group">
+      <ion-label position="stacked">Correo Electrónico</ion-label>
+      <ion-item lines="none" class="input-item" [class.has-error]="accountForm.get('email')?.invalid && accountForm.get('email')?.touched">
+        <ion-input type="email" formControlName="email" placeholder="ejemplo@vitalflow.com"></ion-input>
+      </ion-item>
+      <span class="error-text" *ngIf="accountForm.get('email')?.invalid && accountForm.get('email')?.touched">
+        Ingresa un correo electrónico válido.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <ion-label position="stacked">Contraseña Temporal</ion-label>
+      <ion-item lines="none" class="input-item" [class.has-error]="accountForm.get('password')?.invalid && accountForm.get('password')?.touched">
+        <ion-input type="password" formControlName="password" placeholder="Mínimo 6 caracteres"></ion-input>
+      </ion-item>
+      <span class="error-text" *ngIf="accountForm.get('password')?.invalid && accountForm.get('password')?.touched">
+        La contraseña debe tener al menos 6 caracteres.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <ion-label position="stacked">Rol de Sistema</ion-label>
+      <ion-item lines="none" class="input-item">
+        <ion-select formControlName="role" interface="popover">
+          <ion-select-option value="cliente">Cliente</ion-select-option>
+          <ion-select-option value="transportista">Transportista</ion-select-option>
+          <ion-select-option value="supervisor">Supervisor</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <ion-button expand="block" type="submit" class="submit-btn" [disabled]="isSubmitting || successMessage !== ''">
+      <ion-spinner name="crescent" *ngIf="isSubmitting"></ion-spinner>
+      <span *ngIf="!isSubmitting">Crear Cuenta</span>
+      <ion-icon slot="end" name="save-outline" *ngIf="!isSubmitting"></ion-icon>
+    </ion-button>
+
+  </form>
+</ion-content>

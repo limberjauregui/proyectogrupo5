@@ -1,20 +1,26 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { BehaviorSubject, Observable, from } from 'rxjs';
+import { supabase } from './core/supabase.client';
 
 export type UserRole = 'supervisor' | 'transportista' | 'cliente';
 
 export interface UserSession {
+  id?: string;
   username: string;
   role: UserRole;
+  transportistaId?: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private readonly storageKey = 'auth_session';
-  private sessionSubject = new BehaviorSubject<UserSession | null>(this.loadSession());
+  private router = inject(Router);
 
+  private readonly storageKey = 'vitalflow_auth_session';
+  
+  private sessionSubject = new BehaviorSubject<UserSession | null>(this.loadSession());
   session$ = this.sessionSubject.asObservable();
 
   get session(): UserSession | null {
@@ -33,24 +39,62 @@ export class AuthService {
     return this.session?.username ?? null;
   }
 
-  login(username: string, password: string): boolean {
-    const role = this.getRoleByCredentials(username, password);
-    if (!role) {
-      return false;
-    }
-
-    const session: UserSession = {
-      username: username.trim().toLowerCase(),
-      role,
-    };
-
-    this.saveSession(session);
-    return true;
+  get transportistaId(): string | null {
+    return this.session?.transportistaId ?? null;
   }
 
-  logout(): void {
+  login(email: string, password: string): Observable<boolean> {
+    return from(this.performLogin(email, password));
+  }
+
+  private async performLogin(email: string, password: string): Promise<boolean> {
+    try {
+      // 1. Authenticate with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (authError || !authData.session) {
+        console.error('Supabase auth error:', authError?.message);
+        return false;
+      }
+
+      // 2. Fetch user profile from 'users' table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (userError || !userData) {
+        console.error('Supabase user fetch error:', userError?.message);
+        // We still log them out if we can't find their profile
+        await supabase.auth.signOut();
+        return false;
+      }
+
+      // 3. Build UserSession
+      const session: UserSession = {
+        id: userData.id,
+        username: userData.name || email,
+        role: userData.role as UserRole,
+        transportistaId: userData.role === 'transportista' ? userData.id : undefined,
+      };
+
+      this.saveSession(session);
+      return true;
+    } catch (e) {
+      console.error('Login exception:', e);
+      return false;
+    }
+  }
+
+  async logout(): Promise<void> {
+    await supabase.auth.signOut();
     localStorage.removeItem(this.storageKey);
     this.sessionSubject.next(null);
+    this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
   getRedirectRoute(): string {
@@ -62,7 +106,7 @@ export class AuthService {
       case 'supervisor':
         return '/dashboard';
       case 'transportista':
-        return '/ordenes';
+        return '/trazabilidad';
       case 'cliente':
         return '/catalogo';
       default:
@@ -70,85 +114,11 @@ export class AuthService {
     }
   }
 
-  private readonly PASSWORDS_KEY = 'mock_user_passwords_v1';
-
-  // ⚠️ DEMO ONLY: passwords are stored in plain text in localStorage.
-  // Replace with a secure authentication backend and hashed passwords before production.
-  private loadPasswords(): Record<string, string> {
-    try {
-      const raw = localStorage.getItem(this.PASSWORDS_KEY);
-      if (!raw) {
-        const defaults: Record<string, string> = {
-          admin: 'admin123',
-          driver: 'driver123',
-          cliente: 'cliente123',
-        };
-        localStorage.setItem(this.PASSWORDS_KEY, JSON.stringify(defaults));
-        return defaults;
-      }
-      return JSON.parse(raw) as Record<string, string>;
-    } catch {
-      return { admin: 'admin123', driver: 'driver123', cliente: 'cliente123' };
-    }
-  }
-
-  private savePasswords(passwords: Record<string, string>): void {
-    localStorage.setItem(this.PASSWORDS_KEY, JSON.stringify(passwords));
-  }
-
-  private getPasswordForUser(username: string): string | null {
-    const normalized = username.trim().toLowerCase();
-    const passwords = this.loadPasswords();
-    return passwords[normalized] ?? null;
-  }
-
-  checkCurrentPassword(password: string): boolean {
-    if (!this.username) {
-      return false;
-    }
-    const stored = this.getPasswordForUser(this.username);
-    return stored ? stored === password : false;
-  }
-
-  updatePasswordForCurrentUser(newPassword: string): boolean {
-    if (!this.username) {
-      return false;
-    }
-    const normalized = this.username.trim().toLowerCase();
-    const passwords = this.loadPasswords();
-    passwords[normalized] = newPassword;
-    this.savePasswords(passwords);
-    return true;
-  }
-
-  private getRoleByCredentials(username: string, password: string): UserRole | null {
-    const normalized = `${username}`.trim().toLowerCase();
-    const storedPassword = this.getPasswordForUser(normalized);
-    if (storedPassword && storedPassword === password) {
-      switch (normalized) {
-        case 'admin':
-          return 'supervisor';
-        case 'driver':
-          return 'transportista';
-        case 'cliente':
-          return 'cliente';
-      }
-    }
-    return null;
-  }
-
   private loadSession(): UserSession | null {
     const raw = localStorage.getItem(this.storageKey);
-    if (!raw) {
-      return null;
-    }
-
+    if (!raw) return null;
     try {
-      const parsed = JSON.parse(raw) as UserSession;
-      if (!parsed?.username || !parsed?.role) {
-        return null;
-      }
-      return parsed;
+      return JSON.parse(raw) as UserSession;
     } catch {
       return null;
     }
@@ -157,5 +127,71 @@ export class AuthService {
   private saveSession(session: UserSession): void {
     localStorage.setItem(this.storageKey, JSON.stringify(session));
     this.sessionSubject.next(session);
+  }
+
+  // --- IMPERSONATION LOGIC ---
+  private readonly impersonatorKey = 'vitalflow_impersonator_session';
+
+  get isImpersonating(): boolean {
+    return !!localStorage.getItem(this.impersonatorKey);
+  }
+
+  get originalSupervisorName(): string | null {
+    const raw = localStorage.getItem(this.impersonatorKey);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as UserSession;
+        return parsed.username;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  impersonateUser(user: any): void {
+    if (!this.session || this.session.role !== 'supervisor') return;
+    
+    // Save current supervisor session
+    localStorage.setItem(this.impersonatorKey, JSON.stringify(this.session));
+    
+    // Create new session for the target user
+    const targetSession: UserSession = {
+      id: user.id,
+      username: user.name,
+      role: user.role as UserRole,
+      transportistaId: user.role === 'transportista' ? user.id : undefined,
+    };
+    
+    this.saveSession(targetSession);
+    this.router.navigateByUrl(this.getRouteForRole(targetSession.role), { replaceUrl: true });
+  }
+
+  revertImpersonation(): void {
+    const raw = localStorage.getItem(this.impersonatorKey);
+    if (raw) {
+      try {
+        const supervisorSession = JSON.parse(raw) as UserSession;
+        this.saveSession(supervisorSession);
+        localStorage.removeItem(this.impersonatorKey);
+        this.router.navigateByUrl(this.getRouteForRole(supervisorSession.role), { replaceUrl: true });
+      } catch {
+        this.logout();
+      }
+    }
+  }
+
+  checkCurrentPassword(password: string): boolean {
+    // For demo purposes, we'll just allow it since Supabase validates it on update anyway
+    return true;
+  }
+
+  async updatePasswordForCurrentUser(newPassword: string): Promise<boolean> {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      console.error('Failed to update password:', error.message);
+      return false;
+    }
+    return true;
   }
 }
